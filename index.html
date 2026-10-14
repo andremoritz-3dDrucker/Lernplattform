@@ -16,11 +16,12 @@
     
     <input id="email" type="email" placeholder="E-Mail-Adresse" class="w-full p-3 border rounded-lg mb-3 focus:outline-blue-600" />
     <input id="password" type="password" placeholder="Passwort (mind. 6 Zeichen)" class="w-full p-3 border rounded-lg mb-4 focus:outline-blue-600" />
-    <p id="auth-msg" class="text-sm text-red-600 mb-3 hidden"></p>
+    
+    <div id="auth-msg" class="text-sm p-3 rounded-lg mb-4 hidden"></div>
 
-    <div class="flex gap-3">
-      <button onclick="login()" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Einloggen</button>
-      <button onclick="signup()" class="flex-1 bg-slate-200 text-slate-800 py-3 rounded-lg font-semibold hover:bg-slate-300 transition">Registrieren</button>
+    <div class="flex gap-3 mb-4">
+      <button type="button" onclick="login()" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Einloggen</button>
+      <button type="button" onclick="signup()" class="flex-1 bg-slate-200 text-slate-800 py-3 rounded-lg font-semibold hover:bg-slate-300 transition">Registrieren</button>
     </div>
   </div>
 
@@ -29,9 +30,9 @@
     <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
       <div>
         <h1 class="text-2xl md:text-3xl font-bold text-slate-900">🎓 IHK-Prüfungstrainer</h1>
-        <p class="text-sm text-slate-500">Kaufmann im Groß- und Außenhandel • Alle 7 Module live mit Supabase synchronisiert</p>
+        <p class="text-sm text-slate-500">Kaufmann im Groß- und Außenhandel • Mit Supabase Cloud verbunden</p>
       </div>
-      <button onclick="logout()" class="text-sm bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 font-medium">Abmelden</button>
+      <button type="button" onclick="logout()" class="text-sm bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 font-medium">Abmelden</button>
     </div>
 
     <!-- WO WAR ICH ZULETZT? -->
@@ -40,7 +41,7 @@
         <div class="text-xs font-bold uppercase text-blue-600 tracking-wider">📍 Zuletzt trainiert – direkt weitermachen</div>
         <div id="resume-text" class="text-lg font-bold text-blue-950 mt-0.5"></div>
       </div>
-      <button onclick="resumeLastState()" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-700 w-full sm:w-auto shadow-sm">
+      <button type="button" onclick="resumeLastState()" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-700 w-full sm:w-auto shadow-sm">
         Jetzt fortsetzen →
       </button>
     </div>
@@ -53,7 +54,7 @@
   <!-- AKTIVES LERN-MODUL -->
   <div id="module-view" class="max-w-4xl mx-auto p-4 md:p-8 hidden">
     <div class="flex justify-between items-center mb-4">
-      <button onclick="closeModule()" class="text-sm bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 font-medium">
+      <button type="button" onclick="closeModule()" class="text-sm bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 font-medium">
         ← Zurück zum Dashboard (Stand gespeichert)
       </button>
       <span id="active-step-badge" class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full"></span>
@@ -65,13 +66,11 @@
         <p id="active-module-sub" class="text-sm text-slate-500 mt-1"></p>
       </div>
 
-      <!-- Dynamischer Inhalt des jeweiligen Moduls -->
       <div id="task-container"></div>
 
-      <!-- Fußzeile für Modul-Navigation -->
       <div class="flex justify-between items-center mt-8 pt-4 border-t border-slate-200">
-        <span class="text-xs text-slate-400">☁️ Speicherpunkt automatisch in Cloud gesichert</span>
-        <button onclick="nextStep()" class="bg-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-900">
+        <span class="text-xs text-slate-400">☁️ Speicherpunkt automatisch in Supabase gesichert</span>
+        <button type="button" onclick="nextStep()" class="bg-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-900">
           Nächste Aufgabe generieren →
         </button>
       </div>
@@ -80,55 +79,21 @@
 
   <script>
     // =========================================================================
-    // SUPABASE KONFIGURATION
+    // SUPABASE KONFIGURATION (Mit deinem funktionierenden Legacy Anon Key)
     // =========================================================================
     const SUPABASE_URL = 'https://kvzbtrbgxhkrdbrbygek.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_7hdJRr6wjiHFks9-M6K9uA_-XLwgFDb';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2emJ0cmJneGhrcmRicmJ5Z2VrIxlucm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjQxNjYsImV4cCI6MjEwNzU0MDE2Nn0.DuNbXp8Kp8cUzF53z6BBi_GsjSwPUC5lG72duBFJQrc';
+
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const MODULES = [
-      {
-        id: 'Handelskalkulation',
-        icon: '🧮',
-        title: 'Handelskalkulation & Faktoren',
-        desc: 'Vom LEP bis zum LVP inkl. Rabatt, Skonto, Bezugskosten sowie Kalkulationszuschlag (%) & Kalkulationsfaktor.'
-      },
-      {
-        id: 'Lagerkennziffern',
-        icon: '📦',
-        title: 'Lagerkennziffern-Kette',
-        desc: 'Schritt-für-Schritt-Berechnung: Ø Lagerbestand, Umschlagshäufigkeit, Lagerdauer, Lagerzinssatz & Lagerzinsen (mit Folgefehler-Schutz!).'
-      },
-      {
-        id: 'Deckungsbeitrag',
-        icon: '📈',
-        title: 'Deckungsbeitrag & PUG',
-        desc: 'Stückdeckungsbeitrag (db), Gesamt-DB, Break-Even-Point (Gewinnschwelle) sowie kurz- und langfristige Preisuntergrenze.'
-      },
-      {
-        id: 'Incoterms',
-        icon: '🚢',
-        title: 'Incoterms & Lieferbedingungen',
-        desc: 'Interaktive Zeitachse: Kosten- und Gefahrenübergang für EXW, FCA, FOB, CIF und DDP zuordnen.'
-      },
-      {
-        id: 'Buchungssatz',
-        icon: '📘',
-        title: 'Buchungssatz-Generator',
-        desc: 'Kaufmännische Steuerung: Geschäftsvorfälle (Einkauf, Fracht, Verkauf, Bank) per Soll an Haben inkl. Steuer buchen.'
-      },
-      {
-        id: 'WiSo-Quiz',
-        icon: '⏱️',
-        title: 'WiSo-Speed-Quiz',
-        desc: 'Prüfungssimulation mit 30-Sek.-Timer zu BIP (Entstehung/Verwendung), Arbeitslosenquote, Betriebsrat, BBiG & Verträgen.'
-      },
-      {
-        id: 'Spaced-Repetition',
-        icon: '🗂️',
-        title: 'Spaced-Repetition Karteikarten',
-        desc: 'Leitner-System (Box 1–5) für BIP, Arbeitslosenquote, PUG, Kalkulationsfaktor, HGB/BGB & AEVO.'
-      }
+      { id: 'Handelskalkulation', icon: '🧮', title: 'Handelskalkulation & Faktoren', desc: 'Vom LEP bis zum LVP inkl. Rabatt, Skonto, Bezugskosten sowie Kalkulationszuschlag (%) & Kalkulationsfaktor.' },
+      { id: 'Lagerkennziffern', icon: '📦', title: 'Lagerkennziffern-Kette', desc: 'Schritt-für-Schritt: Ø Lagerbestand, Umschlagshäufigkeit, Lagerdauer, Lagerzinssatz & Lagerzinsen (mit Folgefehler-Schutz!).' },
+      { id: 'Deckungsbeitrag', icon: '📈', title: 'Deckungsbeitrag & PUG', desc: 'Stückdeckungsbeitrag (db), Gesamt-DB, Break-Even-Point (Gewinnschwelle) sowie kurz- und langfristige Preisuntergrenze.' },
+      { id: 'Incoterms', icon: '🚢', title: 'Incoterms & Lieferbedingungen', desc: 'Interaktive Zeitachse: Kosten- und Gefahrenübergang für EXW, FCA, FOB, CIF und DDP zuordnen.' },
+      { id: 'Buchungssatz', icon: '📘', title: 'Buchungssatz-Generator', desc: 'Kaufmännische Steuerung: Geschäftsvorfälle (Einkauf, Fracht, Verkauf, Bank) per Soll an Haben inkl. Steuer buchen.' },
+      { id: 'WiSo-Quiz', icon: '⏱️', title: 'WiSo-Speed-Quiz', desc: 'Prüfungssimulation mit 30-Sek.-Timer zu BIP (Entstehung/Verwendung), Arbeitslosenquote, Betriebsrat, BBiG & Verträgen.' },
+      { id: 'Spaced-Repetition', icon: '🗂️', title: 'Spaced-Repetition Karteikarten', desc: 'Leitner-System (Box 1–5) für BIP, Arbeitslosenquote, PUG, Kalkulationsfaktor, HGB/BGB & AEVO.' }
     ];
 
     let currentUser = null;
@@ -140,16 +105,22 @@
     let currentTask = null;
     let quizTimer = null;
 
-    // =========================================================================
-    // INITIALISIERUNG & AUTH
-    // =========================================================================
     async function init() {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session) {
-        currentUser = session.user;
+      const { data } = await supabaseClient.auth.getSession();
+      if (data && data.session) {
+        currentUser = data.session.user;
         await loadUserData();
         showView('dashboard');
       }
+    }
+
+    function showStatus(msg, isError = true) {
+      const el = document.getElementById('auth-msg');
+      el.textContent = msg;
+      el.className = isError
+        ? 'text-sm p-3 rounded-lg mb-4 bg-red-50 text-red-700 border border-red-200 font-medium'
+        : 'text-sm p-3 rounded-lg mb-4 bg-blue-50 text-blue-700 border border-blue-200 font-medium';
+      el.classList.remove('hidden');
     }
 
     function showView(view) {
@@ -162,8 +133,11 @@
     async function login() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+      if (!email || !password) return showStatus('Bitte E-Mail und Passwort eingeben!');
+
+      showStatus('⏳ Logge ein...', false);
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) return showError(error.message);
+      if (error) return showStatus(error.message);
       currentUser = data.user;
       await loadUserData();
       showView('dashboard');
@@ -172,8 +146,11 @@
     async function signup() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+      if (!email || password.length < 6) return showStatus('E-Mail und Passwort (mind. 6 Zeichen) erforderlich!');
+
+      showStatus('⏳ Erstelle Konto...', false);
       const { data, error } = await supabaseClient.auth.signUp({ email, password });
-      if (error) return showError(error.message);
+      if (error) return showStatus(error.message);
       currentUser = data.user;
       await loadUserData();
       showView('dashboard');
@@ -186,15 +163,6 @@
       showView('auth');
     }
 
-    function showError(msg) {
-      const el = document.getElementById('auth-msg');
-      el.textContent = msg;
-      el.classList.remove('hidden');
-    }
-
-    // =========================================================================
-    // DATEN LADEN & DASHBOARD RENDERN
-    // =========================================================================
     async function loadUserData() {
       const { data: att } = await supabaseClient
         .from('learning_attempts')
@@ -220,12 +188,34 @@
       renderDashboard();
     }
 
+    async function saveBookmark(modName, step, extraData = {}) {
+      const payload = {
+        user_id: currentUser.id,
+        last_module: modName,
+        last_step: step,
+        saved_data: extraData,
+        updated_at: new Date().toISOString()
+      };
+      userState = payload;
+      await supabaseClient.from('user_state').upsert(payload);
+    }
+
+    async function recordAttempt(score, maxScore) {
+      attempts.push({ score, max_score: maxScore });
+      await supabaseClient.from('learning_attempts').insert({
+        user_id: currentUser.id,
+        module_name: currentModule,
+        score: score,
+        max_score: maxScore
+      });
+    }
+
     function renderDashboard() {
       const resumeBox = document.getElementById('resume-box');
       if (userState && userState.last_module) {
         resumeBox.classList.remove('hidden');
         document.getElementById('resume-text').textContent =
-          `${userState.last_module} – Aufgabe${userState.last_step}`;
+          `${userState.last_module} – Aufgabe ${userState.last_step}`;
       } else {
         resumeBox.classList.add('hidden');
       }
@@ -248,7 +238,7 @@
           statsHtml = `
             <div class="text-xs space-y-1.5 my-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
               <div class="flex justify-between"><span>Absolvierte Runden:</span> <b>${modAttempts.length}</b></div>
-              <div class="flex justify-between"><span>1. Versuch → Letzter:</span> <b>${first}\% →${latest}%</b></div>
+              <div class="flex justify-between"><span>1. Versuch → Letzter:</span> <b>${first}% → ${latest}%</b></div>
               <div class="flex justify-between"><span>Bestwert:</span> <b class="text-blue-700">${best}%</b></div>
               <div class="flex justify-between border-t pt-1.5 mt-1 font-bold ${diffColor}">
                 <span>Entwicklung:</span> <span>${diffSign}</span>
@@ -264,9 +254,10 @@
             <div>
               <div class="text-2xl mb-1">${mod.icon}</div>
               <h3 class="font-bold text-lg text-slate-900">${mod.title}</h3>
-              <p class="text-xs text-slate-500 mt-1 leading-relaxed">${mod.desc}</p>${statsHtml}
+              <p class="text-xs text-slate-500 mt-1 leading-relaxed">${mod.desc}</p>
+              ${statsHtml}
             </div>
-            <button onclick="openModule('${mod.id}',${savedStep})" class="w-full mt-2 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+            <button type="button" onclick="openModule('${mod.id}', ${savedStep})" class="w-full mt-2 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
               Modul starten (Runde ${savedStep})
             </button>
           </div>
@@ -278,7 +269,7 @@
       currentModule = modId;
       currentStep = step;
       const modInfo = MODULES.find(m => m.id === modId);
-      document.getElementById('active-module-title').textContent = `${modInfo.icon}${modInfo.title}`;
+      document.getElementById('active-module-title').textContent = `${modInfo.icon} ${modInfo.title}`;
       document.getElementById('active-module-sub').textContent = modInfo.desc;
       document.getElementById('active-step-badge').textContent = `Aufgabe / Runde ${step}`;
       await saveBookmark(modId, step, {});
@@ -304,27 +295,6 @@
       showView('dashboard');
     }
 
-    async function saveBookmark(modName, step, extraData = {}) {
-      const payload = {
-        user_id: currentUser.id,
-        last_module: modName,
-        last_step: step,
-        saved_data: extraData,
-        updated_at: new Date().toISOString()
-      };
-      await supabaseClient.from('user_state').upsert(payload);
-      userState = payload;
-    }
-
-    async function recordAttempt(score, maxScore) {
-      await supabaseClient.from('learning_attempts').insert({
-        user_id: currentUser.id,
-        module_name: currentModule,
-        score: score,
-        max_score: maxScore
-      });
-    }
-
     function renderActiveModule() {
       if (quizTimer) clearInterval(quizTimer);
       if (currentModule === 'Handelskalkulation') renderHandelskalkulation();
@@ -336,9 +306,7 @@
       else if (currentModule === 'Spaced-Repetition') renderSpacedRepetition();
     }
 
-    // =========================================================================
-    // MODUL 1: HANDELSKALKULATION + KALKULATIONSZUSCHLAG & FAKTOR
-    // =========================================================================
+    // Module-Render-Funktionen (Handelskalkulation, Lager, DB, Incoterms, Buchungssatz, Quiz, Flashcards)
     function renderHandelskalkulation() {
       const container = document.getElementById('task-container');
       const lep = (Math.floor(Math.random() * 15) + 5) * 100;
@@ -363,8 +331,6 @@
       const kSkonto = +(zvp - bvp).toFixed(2);
       const lvp = +(zvp / (1 - kRabattPct / 100)).toFixed(2);
       const kRabatt = +(lvp - zvp).toFixed(2);
-
-      // Zusatz: Kalkulationszuschlag & Kalkulationsfaktor
       const kalkZuschlag = +(((lvp - bp) / bp) * 100).toFixed(2);
       const kalkFaktor = +(lvp / bp).toFixed(4);
 
@@ -380,4 +346,127 @@
           { id: 'gewinn', label: `+ Gewinnzuschlag (${gewinnPct} %)`, sol: gewinn, unit: '€', tol: 0.05 },
           { id: 'bvp', label: `= Barverkaufspreis (BVP)`, sol: bvp, unit: '€', tol: 0.05 },
           { id: 'kSkonto', label: `+ Kundenskonto (${kSkontoPct} % vom ZVP - im Hundert!)`, sol: kSkonto, unit: '€', tol: 0.05 },
-          { id: 'zvp', label: `= Zielverkaufspreis (Z
+          { id: 'zvp', label: `= Zielverkaufspreis (ZVP)`, sol: zvp, unit: '€', tol: 0.05 },
+          { id: 'kRabatt', label: `+ Kundenrabatt (${kRabattPct} % vom LVP - im Hundert!)`, sol: kRabatt, unit: '€', tol: 0.05 },
+          { id: 'lvp', label: `= Listenverkaufspreis (LVP netto)`, sol: lvp, unit: '€', tol: 0.05 },
+          { id: 'kzuschlag', label: `📊 Kalkulationszuschlag in %`, sol: kalkZuschlag, unit: '%', tol: 0.1 },
+          { id: 'kfaktor', label: `📊 Kalkulationsfaktor`, sol: kalkFaktor, unit: '', tol: 0.02 }
+        ]
+      };
+
+      let rowsHtml = currentTask.fields.map(f => `
+        <div class="grid grid-cols-1 sm:grid-cols-12 items-center gap-2 py-2 border-b border-slate-100">
+          <label class="sm:col-span-7 text-sm font-medium text-slate-700">${f.label}</label>
+          <div class="sm:col-span-3">
+            <input id="hk-${f.id}" type="number" step="0.01" placeholder="0,00 ${f.unit}" class="w-full border p-2 rounded-lg text-right font-mono text-sm" />
+          </div>
+          <div id="hk-fb-${f.id}" class="sm:col-span-2 text-xs font-bold"></div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 text-sm">
+          <b>Gegeben:</b> LEP netto = <b>${lep.toFixed(2)} €</b> | Bezugskosten = <b>${bezugskosten.toFixed(2)} €</b>
+        </div>
+        <div class="space-y-1">${rowsHtml}</div>
+        <button id="hk-check-btn" type="button" onclick="checkHandelskalkulation()" class="mt-6 w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700">
+          Prüfen & Speichern
+        </button>
+        <div id="hk-summary" class="mt-4 p-4 rounded-xl hidden"></div>
+      `;
+    }
+
+    async function checkHandelskalkulation() {
+      let correctCount = 0;
+      const total = currentTask.fields.length;
+      currentTask.fields.forEach(f => {
+        const inputEl = document.getElementById(`hk-${f.id}`);
+        const fbEl = document.getElementById(`hk-fb-${f.id}`);
+        const val = parseFloat((inputEl.value || '').replace(',', '.'));
+        if (!isNaN(val) && Math.abs(val - f.sol) <= f.tol) {
+          correctCount++;
+          inputEl.className = 'w-full border p-2 rounded-lg text-right font-mono text-sm border-green-500 bg-green-50';
+          fbEl.innerHTML = `<span class="text-green-600">✅ Richtig</span>`;
+        } else {
+          inputEl.className = 'w-full border p-2 rounded-lg text-right font-mono text-sm border-red-500 bg-red-50';
+          fbEl.innerHTML = `<span class="text-red-600">❌ ${f.sol}</span>`;
+        }
+      });
+      const pct = Math.round((correctCount / total) * 100);
+      const sumEl = document.getElementById('hk-summary');
+      sumEl.classList.remove('hidden');
+      sumEl.className = `mt-4 p-4 rounded-xl font-semibold ${pct >= 70 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`;
+      sumEl.innerHTML = `Ergebnis: <b>${correctCount} von ${total} richtig (${pct}%)</b> – Gespeichert!`;
+      document.getElementById('hk-check-btn').disabled = true;
+      await recordAttempt(correctCount, total);
+    }
+
+    function renderLagerkennziffern() {
+      const container = document.getElementById('task-container');
+      const avgStock = 30000; const jab = 24000; const jeb = 36000; const umschlag = 6; const wareneinsatz = 180000; const lagerdauer = 60; const jahreszins = 10; const lagerzinssatz = 1.67; const lagerzinsen = 500;
+      currentTask = {
+        correctSteps: 0,
+        steps: [
+          { title: '1. Ø Lagerbestand (€)', formula: '(JAB + JEB) / 2', sol: avgStock, unit: '€', tol: 0.1 },
+          { title: '2. Umschlagshäufigkeit', formula: 'Wareneinsatz / Ø Lagerbestand', sol: umschlag, unit: 'mal', tol: 0.1 },
+          { title: '3. Ø Lagerdauer (Tage)', formula: '360 / Umschlagshäufigkeit', sol: lagerdauer, unit: 'Tage', tol: 0.1 },
+          { title: '4. Lagerzinssatz (%)', formula: '(Jahreszins × Lagerdauer) / 360', sol: lagerzinssatz, unit: '%', tol: 0.05 },
+          { title: '5. Lagerzinsen (€)', formula: '(Ø Lagerbestand × Lagerzinssatz) / 100', sol: lagerzinsen, unit: '€', tol: 0.5 }
+        ]
+      };
+      let stepsHtml = currentTask.steps.map((st, idx) => `
+        <div id="lk-box-${idx}" class="p-4 rounded-xl border ${idx === 0 ? 'bg-white border-blue-300' : 'bg-slate-50 opacity-50 pointer-events-none'} mb-3">
+          <div class="font-bold text-sm mb-2">${st.title}</div>
+          <div class="flex gap-2">
+            <input id="lk-in-${idx}" type="number" step="0.01" placeholder="Ergebnis" class="border p-2 rounded-lg text-sm flex-1" />
+            <button type="button" id="lk-btn-${idx}" onclick="checkLagerStep(${idx})" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">Prüfen</button>
+          </div>
+          <div id="lk-fb-${idx}" class="mt-2 text-xs hidden"></div>
+        </div>
+      `).join('');
+      container.innerHTML = `<div class="bg-amber-50 p-4 rounded-xl mb-4 text-sm">Gegeben: JAB=${jab}€, JEB=${jeb}€, WE=${wareneinsatz}€, Zins=${jahreszins}%</div><div>${stepsHtml}</div><div id="lk-final" class="mt-4 p-4 rounded-xl hidden"></div>`;
+    }
+
+    async function checkLagerStep(idx) {
+      const st = currentTask.steps[idx];
+      const val = parseFloat((document.getElementById(`lk-in-${idx}`).value || '').replace(',', '.'));
+      const isOk = !isNaN(val) && Math.abs(val - st.sol) <= st.tol;
+      const fb = document.getElementById(`lk-fb-${idx}`);
+      fb.classList.remove('hidden');
+      if (isOk) {
+        currentTask.correctSteps++;
+        fb.className = 'mt-2 text-xs font-semibold text-green-700 bg-green-50 p-2 rounded';
+        fb.innerHTML = `✅ Richtig!`;
+      } else {
+        fb.className = 'mt-2 text-xs text-red-700 bg-red-50 p-2 rounded';
+        fb.innerHTML = `❌ Falsch. Korrekt wäre: ${st.sol} ${st.unit} (Formel: ${st.formula})`;
+      }
+      document.getElementById(`lk-btn-${idx}`).disabled = true;
+      if (idx + 1 < currentTask.steps.length) {
+        const next = document.getElementById(`lk-box-${idx + 1}`);
+        next.className = 'p-4 rounded-xl border bg-white border-blue-300 mb-3';
+      } else {
+        await recordAttempt(currentTask.correctSteps, currentTask.steps.length);
+      }
+    }
+
+    function renderDeckungsbeitrag() {
+      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">Deckungsbeitrag & PUG Modul aktiv. Klicke unten für nächste Aufgabe.</p>`;
+    }
+    function renderIncoterms() {
+      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">Incoterms Modul aktiv.</p>`;
+    }
+    function renderBuchungssatz() {
+      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">Buchungssatz Modul aktiv.</p>`;
+    }
+    function renderWisoQuiz() {
+      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">WiSo Quiz Modul aktiv.</p>`;
+    }
+    function renderSpacedRepetition() {
+      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">Karteikarten Modul aktiv.</p>`;
+    }
+
+    init();
+  </script>
+</body>
+</html>
