@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -79,7 +79,7 @@
 
   <script>
     // =========================================================================
-    // SUPABASE KONFIGURATION (Mit deinem funktionierenden Key)
+    // SUPABASE KONFIGURATION
     // =========================================================================
     const SUPABASE_URL = 'https://kvzbtrbgxhkrdbrbygek.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2emJ0cmJneGhrcmRicmJ5Z2VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjQxNjYsImV4cCI6MjEwNzU0MDE2Nn0.DuNbXp8Kp8cUzF53z6BBi_GsjSwPUC5lG72duBFJQrc';
@@ -151,9 +151,15 @@
       showStatus('⏳ Erstelle Konto...', false);
       const { data, error } = await supabaseClient.auth.signUp({ email, password });
       if (error) return showStatus(error.message);
-      currentUser = data.user;
-      await loadUserData();
-      showView('dashboard');
+
+      // Falls direkt eingeloggt
+      if (data.user) {
+        currentUser = data.user;
+        await loadUserData();
+        showView('dashboard');
+      } else {
+        showStatus('Registrierung erfolgreich! Du kannst dich jetzt einloggen.', false);
+      }
     }
 
     async function logout() {
@@ -377,3 +383,15 @@
 
     async function checkHandelskalkulation() {
       let correctCount = 0;
+      const total = currentTask.fields.length;
+      currentTask.fields.forEach(f => {
+        const inputEl = document.getElementById(`hk-${f.id}`);
+        const fbEl = document.getElementById(`hk-fb-${f.id}`);
+        const val = parseFloat((inputEl.value || '').replace(',', '.'));
+        if (!isNaN(val) && Math.abs(val - f.sol) <= f.tol) {
+          correctCount++;
+          inputEl.className = 'w-full border p-2 rounded-lg text-right font-mono text-sm border-green-500 bg-green-50';
+          fbEl.innerHTML = `<span class="text-green-600">✅ Richtig</span>`;
+        } else {
+          inputEl.className = 'w-full border p-2 rounded-lg text-right font-mono text-sm border-red-500 bg-red-50';
+          fbEl.innerHTML = `<span class="text-red-60
