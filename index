@@ -3,67 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IHK-Lernapp | Groß- und Außenhandel</title>
+  <title>IHK-Lernapp | Kaufmann im Groß- und Außenhandel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans pb-12">
 
   <!-- LOGIN BEREICH -->
-  <div id="auth-view" class="max-w-md mx-auto mt-16 bg-white p-6 rounded-xl shadow-md">
-    <h1 class="text-2xl font-bold text-blue-700 mb-2">🎓 IHK-Lernapp Login</h1>
-    <p class="text-sm text-slate-500 mb-6">Speichere deinen Fortschritt & vergleiche deine Ergebnisse von überall.</p>
+  <div id="auth-view" class="max-w-md mx-auto mt-16 bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+    <h1 class="text-2xl font-bold text-blue-700 mb-1">🎓 IHK-Lernapp Login</h1>
+    <p class="text-sm text-slate-500 mb-6">Groß- & Außenhandel Training • Cloud-Speicher & Lernfortschritt</p>
     
-    <input id="email" type="email" placeholder="E-Mail-Adresse" class="w-full p-3 border rounded-lg mb-3" />
-    <input id="password" type="password" placeholder="Passwort (mind. 6 Zeichen)" class="w-full p-3 border rounded-lg mb-4" />
+    <input id="email" type="email" placeholder="E-Mail-Adresse" class="w-full p-3 border rounded-lg mb-3 focus:outline-blue-600" />
+    <input id="password" type="password" placeholder="Passwort (mind. 6 Zeichen)" class="w-full p-3 border rounded-lg mb-4 focus:outline-blue-600" />
     <p id="auth-msg" class="text-sm text-red-600 mb-3 hidden"></p>
 
     <div class="flex gap-3">
-      <button onclick="login()" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">Einloggen</button>
-      <button onclick="signup()" class="flex-1 bg-slate-200 text-slate-800 py-3 rounded-lg font-semibold hover:bg-slate-300">Registrieren</button>
+      <button onclick="login()" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Einloggen</button>
+      <button onclick="signup()" class="flex-1 bg-slate-200 text-slate-800 py-3 rounded-lg font-semibold hover:bg-slate-300 transition">Registrieren</button>
     </div>
   </div>
 
   <!-- DASHBOARD BEREICH -->
-  <div id="dashboard-view" class="max-w-4xl mx-auto p-4 md:p-8 hidden">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-slate-900">🎓 IHK-Lernapp Dashboard</h1>
-      <button onclick="logout()" class="text-sm bg-white border px-4 py-2 rounded-lg hover:bg-slate-50">Abmelden</button>
+  <div id="dashboard-view" class="max-w-5xl mx-auto p-4 md:p-8 hidden">
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">🎓 IHK-Prüfungstrainer</h1>
+        <p class="text-sm text-slate-500">Kaufmann im Groß- und Außenhandel • Alle Ergebnisse live in Supabase</p>
+      </div>
+      <button onclick="logout()" class="text-sm bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 font-medium">Abmelden</button>
     </div>
 
     <!-- WO WAR ICH ZULETZT? -->
-    <div id="resume-box" class="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hidden">
+    <div id="resume-box" class="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hidden">
       <div>
-        <div class="text-xs font-bold uppercase text-blue-600 tracking-wider">📍 Zuletzt stehengeblieben</div>
-        <div id="resume-text" class="text-lg font-semibold text-blue-950 mt-1"></div>
+        <div class="text-xs font-bold uppercase text-blue-600 tracking-wider">📍 Zuletzt trainiert – direkt weitermachen</div>
+        <div id="resume-text" class="text-lg font-bold text-blue-950 mt-0.5"></div>
       </div>
-      <button onclick="resumeLastState()" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-blue-700 w-full sm:w-auto">
-        Genau hier weitermachen →
+      <button onclick="resumeLastState()" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-700 w-full sm:w-auto shadow-sm">
+        Jetzt fortsetzen →
       </button>
     </div>
 
     <!-- MODULE & VERBESSERUNGS-VERGLEICH -->
-    <h2 class="text-lg font-bold mb-3">📊 Deine Bausteine & Vorher/Nachher-Vergleich</h2>
-    <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    <h2 class="text-lg font-bold mb-4 text-slate-800">📊 Deine 5 IHK-Trainingsmodule & Leistungsvergleich</h2>
+    <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
   </div>
 
   <!-- AKTIVES LERN-MODUL -->
-  <div id="module-view" class="max-w-3xl mx-auto p-4 md:p-8 hidden">
-    <button onclick="closeModule()" class="text-sm bg-white border px-4 py-2 rounded-lg mb-4 hover:bg-slate-50">
-      ← Zurück zur Übersicht (Stand ist gespeichert)
-    </button>
+  <div id="module-view" class="max-w-4xl mx-auto p-4 md:p-8 hidden">
+    <div class="flex justify-between items-center mb-4">
+      <button onclick="closeModule()" class="text-sm bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 font-medium">
+        ← Zurück zum Dashboard (Stand gespeichert)
+      </button>
+      <span id="active-step-badge" class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full"></span>
+    </div>
 
-    <div class="bg-white p-6 rounded-xl shadow-sm border">
-      <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h2 id="active-module-title" class="text-xl font-bold text-blue-700"></h2>
-        <span id="active-step-badge" class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full"></span>
+    <div class="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+      <div class="border-b pb-4 mb-6">
+        <h2 id="active-module-title" class="text-2xl font-bold text-blue-700"></h2>
+        <p id="active-module-sub" class="text-sm text-slate-500 mt-1"></p>
       </div>
 
-      <div id="task-container" class="my-4"></div>
+      <!-- Dynamischer Inhalt des jeweiligen Moduls -->
+      <div id="task-container"></div>
 
-      <div class="flex flex-wrap gap-3 mt-6 pt-4 border-t">
-        <button onclick="nextStep()" class="bg-slate-800 text-white px-4 py-2.5 rounded-lg text-sm font-medium">
-          Nächste Aufgabe (Stand speichern)
+      <!-- Fußzeile für Modul-Navigation -->
+      <div class="flex justify-between items-center mt-8 pt-4 border-t border-slate-200">
+        <span id="save-indicator" class="text-xs text-slate-400">☁️ Speicherpunkt automatisch in Cloud gesichert</span>
+        <button onclick="nextStep()" class="bg-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-900">
+          Nächste Aufgabe generieren →
         </button>
       </div>
     </div>
@@ -71,22 +80,57 @@
 
   <script>
     // =========================================================================
-    // DEINE FERTIGE SUPABASE VERBINDUNG:
+    // SUPABASE KONFIGURATION
     // =========================================================================
     const SUPABASE_URL = 'https://kvzbtrbgxhkrdbrbygek.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_7hdJRr6wjiHFks9-M6K9uA_-XLwgFDb';
-    // =========================================================================
-
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const MODULES = ['Handelskalkulation', 'Lagerkennziffern', 'Deckungsbeitrag', 'Buchführung & GuV'];
+
+    const MODULES = [
+      {
+        id: 'Handelskalkulation',
+        icon: '🧮',
+        title: 'Handelskalkulations-Trainer',
+        desc: 'Vom Listeneinkaufspreis (LEP) bis zum Listenverkaufspreis (LVP) inkl. Rabatt, Skonto, Bezugs- & Handlungskosten.'
+      },
+      {
+        id: 'Incoterms',
+        icon: '🚢',
+        title: 'Incoterms & Lieferbedingungen',
+        desc: 'Interaktive Zeitachse (Drag & Klick): Kosten- und Gefahrenübergang für EXW, FCA, FOB, CIF, DAP & DDP zuordnen.'
+      },
+      {
+        id: 'Buchungssatz',
+        icon: '📘',
+        title: 'Buchungssatz-Generator',
+        desc: 'Kaufmännische Steuerung: Geschäftsvorfälle (Einkauf, Fracht, Skonto, Verkauf) per Soll an Haben inkl. Steuer buchen.'
+      },
+      {
+        id: 'WiSo-Quiz',
+        icon: '⏱️',
+        title: 'WiSo-Speed-Quiz',
+        desc: 'Prüfungssimulation unter Zeitdruck (30 Sek./Frage) zu Betriebsrat, BBiG, Arbeitsrecht und Vertragsarten.'
+      },
+      {
+        id: 'Spaced-Repetition',
+        icon: '🗂️',
+        title: 'Spaced-Repetition Karteikarten',
+        desc: 'Leitner-System (Box 1–5) für HGB/BGB-Paragrafen & Großhandelsbegriffe. Falsch gewusste Karten kommen häufiger!'
+      }
+    ];
 
     let currentUser = null;
     let attempts = [];
     let userState = null;
+    let flashcardsDB = {};
     let currentModule = null;
     let currentStep = 1;
     let currentTask = null;
+    let quizTimer = null;
 
+    // =========================================================================
+    // INITIALISIERUNG & AUTH
+    // =========================================================================
     async function init() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
@@ -97,6 +141,7 @@
     }
 
     function showView(view) {
+      if (quizTimer) clearInterval(quizTimer);
       document.getElementById('auth-view').classList.toggle('hidden', view !== 'auth');
       document.getElementById('dashboard-view').classList.toggle('hidden', view !== 'dashboard');
       document.getElementById('module-view').classList.toggle('hidden', view !== 'module');
@@ -123,6 +168,7 @@
     }
 
     async function logout() {
+      if (quizTimer) clearInterval(quizTimer);
       await supabaseClient.auth.signOut();
       currentUser = null;
       showView('auth');
@@ -134,6 +180,9 @@
       el.classList.remove('hidden');
     }
 
+    // =========================================================================
+    // DATEN LADEN & DASHBOARD RENDERN
+    // =========================================================================
     async function loadUserData() {
       const { data: att } = await supabaseClient
         .from('learning_attempts')
@@ -148,6 +197,13 @@
         .eq('user_id', currentUser.id)
         .maybeSingle();
       userState = st;
+
+      const { data: fc } = await supabaseClient
+        .from('flashcard_progress')
+        .select('*')
+        .eq('user_id', currentUser.id);
+      flashcardsDB = {};
+      (fc || []).forEach(row => { flashcardsDB[row.card_id] = row; });
 
       renderDashboard();
     }
@@ -166,8 +222,8 @@
       grid.innerHTML = '';
 
       MODULES.forEach(mod => {
-        const modAttempts = attempts.filter(a => a.module_name === mod);
-        let statsHtml = `<p class="text-sm text-slate-400 my-3">Noch keine Ergebnisse gespeichert.</p>`;
+        const modAttempts = attempts.filter(a => a.module_name === mod.id);
+        let statsHtml = `<p class="text-xs text-slate-400 my-3 italic">Noch keine Ergebnisse gespeichert.</p>`;
 
         if (modAttempts.length > 0) {
           const first = Math.round((modAttempts[0].score / modAttempts[0].max_score) * 100);
@@ -178,41 +234,45 @@
           const diffSign = diff >= 0 ? `+${diff}% verbessert` : `${diff}%`;
 
           statsHtml = `
-            <div class="text-sm space-y-1 my-3 bg-slate-50 p-3 rounded-lg border">
-              <div class="flex justify-between"><span>Versuche:</span> <b>${modAttempts.length}</b></div>
+            <div class="text-xs space-y-1.5 my-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div class="flex justify-between"><span>Absolvierte Runden:</span> <b>${modAttempts.length}</b></div>
               <div class="flex justify-between"><span>1. Versuch → Letzter:</span> <b>${first}% → ${latest}%</b></div>
-              <div class="flex justify-between"><span>Bestwert:</span> <b>${best}%</b></div>
-              <div class="flex justify-between border-t pt-1 mt-1 font-bold ${diffColor}">
+              <div class="flex justify-between"><span>Bestwert:</span> <b class="text-blue-700">${best}%</b></div>
+              <div class="flex justify-between border-t pt-1.5 mt-1 font-bold ${diffColor}">
                 <span>Entwicklung:</span> <span>${diffSign}</span>
               </div>
             </div>
           `;
         }
 
-        const savedStep = (userState && userState.last_module === mod) ? userState.last_step : 1;
+        const savedStep = (userState && userState.last_module === mod.id) ? userState.last_step : 1;
 
         grid.innerHTML += `
-          <div class="bg-white p-5 rounded-xl shadow-sm border flex flex-col justify-between">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
             <div>
-              <h3 class="font-bold text-lg text-slate-800">${mod}</h3>
+              <div class="text-2xl mb-1">${mod.icon}</div>
+              <h3 class="font-bold text-lg text-slate-900">${mod.title}</h3>
+              <p class="text-xs text-slate-500 mt-1 leading-relaxed">${mod.desc}</p>
               ${statsHtml}
             </div>
-            <button onclick="openModule('${mod}', ${savedStep})" class="w-full mt-2 bg-blue-50 text-blue-700 border border-blue-200 py-2.5 rounded-lg font-medium hover:bg-blue-100">
-              Training starten (Aufgabe ${savedStep})
+            <button onclick="openModule('${mod.id}', ${savedStep})" class="w-full mt-2 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+              Modul starten (Runde ${savedStep})
             </button>
           </div>
         `;
       });
     }
 
-    async function openModule(modName, step) {
-      currentModule = modName;
+    async function openModule(modId, step) {
+      currentModule = modId;
       currentStep = step;
-      await saveBookmark(modName, step);
-      document.getElementById('active-module-title').textContent = modName;
-      document.getElementById('active-step-badge').textContent = `Aufgabe ${step}`;
-      generateTask();
+      const modInfo = MODULES.find(m => m.id === modId);
+      document.getElementById('active-module-title').textContent = `${modInfo.icon} ${modInfo.title}`;
+      document.getElementById('active-module-sub').textContent = modInfo.desc;
+      document.getElementById('active-step-badge').textContent = `Aufgabe / Runde ${step}`;
+      await saveBookmark(modId, step, {});
       showView('module');
+      renderActiveModule();
     }
 
     function resumeLastState() {
@@ -220,72 +280,552 @@
     }
 
     async function nextStep() {
+      if (quizTimer) clearInterval(quizTimer);
       currentStep += 1;
-      await saveBookmark(currentModule, currentStep);
-      document.getElementById('active-step-badge').textContent = `Aufgabe ${currentStep}`;
-      generateTask();
+      document.getElementById('active-step-badge').textContent = `Aufgabe / Runde ${currentStep}`;
+      await saveBookmark(currentModule, currentStep, {});
+      renderActiveModule();
     }
 
     async function closeModule() {
+      if (quizTimer) clearInterval(quizTimer);
       await loadUserData();
       showView('dashboard');
     }
 
-    async function saveBookmark(modName, step) {
+    async function saveBookmark(modName, step, extraData = {}) {
       const payload = {
         user_id: currentUser.id,
         last_module: modName,
         last_step: step,
+        saved_data: extraData,
         updated_at: new Date().toISOString()
       };
       await supabaseClient.from('user_state').upsert(payload);
       userState = payload;
     }
 
-    function generateTask() {
-      const container = document.getElementById('task-container');
-      const listPrice = (Math.floor(Math.random() * 40) + 10) * 10;
-      const discount = [10, 15, 20][Math.floor(Math.random() * 3)];
-      const solution = +(listPrice * (1 - discount / 100)).toFixed(2);
-      currentTask = { solution };
-
-      container.innerHTML = `
-        <p class="text-slate-700 mb-4">
-          Ein Großhändler kauft Ware zu einem <b>Listeneinkaufspreis (LEP) von ${listPrice},00 €</b> netto.
-          Der Lieferant gewährt <b>${discount} % Liefererrabatt</b>.
-          <br><br>Berechne den <b>Zieleinkaufspreis (ZEP)</b> in Euro:
-        </p>
-        <div class="flex gap-2">
-          <input id="user-answer" type="number" step="0.01" placeholder="Ergebnis in €" class="border p-2.5 rounded-lg flex-1" />
-          <button onclick="checkAnswer()" class="bg-green-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-green-700">
-            Prüfen & Ergebnis speichern
-          </button>
-        </div>
-        <div id="feedback-box" class="mt-3 text-sm font-semibold hidden"></div>
-      `;
-    }
-
-    async function checkAnswer() {
-      const val = parseFloat(document.getElementById('user-answer').value.replace(',', '.'));
-      const isCorrect = Math.abs(val - currentTask.solution) < 0.05;
-      const score = isCorrect ? 100 : 0;
-
-      const fb = document.getElementById('feedback-box');
-      fb.classList.remove('hidden');
-      if (isCorrect) {
-        fb.className = 'mt-3 text-sm font-semibold text-green-600';
-        fb.textContent = `✅ Richtig! (${currentTask.solution} €) – 100% wurden in deiner Statistik gespeichert!`;
-      } else {
-        fb.className = 'mt-3 text-sm font-semibold text-red-600';
-        fb.textContent = `❌ Leider falsch. Richtig wäre ${currentTask.solution} € gewesen. Versuch wurde gespeichert.`;
-      }
-
+    async function recordAttempt(score, maxScore) {
       await supabaseClient.from('learning_attempts').insert({
         user_id: currentUser.id,
         module_name: currentModule,
         score: score,
-        max_score: 100
+        max_score: maxScore
       });
+    }
+
+    function renderActiveModule() {
+      if (quizTimer) clearInterval(quizTimer);
+      if (currentModule === 'Handelskalkulation') renderHandelskalkulation();
+      else if (currentModule === 'Incoterms') renderIncoterms();
+      else if (currentModule === 'Buchungssatz') renderBuchungssatz();
+      else if (currentModule === 'WiSo-Quiz') renderWisoQuiz();
+      else if (currentModule === 'Spaced-Repetition') renderSpacedRepetition();
+    }
+
+    // =========================================================================
+    // MODUL 1: HANDELSKALKULATIONS-TRAINER (LEP bis LVP)
+    // =========================================================================
+    function renderHandelskalkulation() {
+      const container = document.getElementById('task-container');
+      const lep = (Math.floor(Math.random() * 15) + 5) * 100; // 500 - 2000 €
+      const lRabattPct = [10, 15, 20][Math.floor(Math.random() * 3)];
+      const lSkontoPct = [2, 3][Math.floor(Math.random() * 2)];
+      const bezugskosten = [25, 40, 50, 80][Math.floor(Math.random() * 4)];
+      const hkzPct = [20, 25, 30][Math.floor(Math.random() * 3)];
+      const gewinnPct = [10, 15, 20][Math.floor(Math.random() * 3)];
+      const kSkontoPct = [2, 3][Math.floor(Math.random() * 2)];
+      const kRabattPct = [5, 10][Math.floor(Math.random() * 2)];
+
+      const lRabatt = +(lep * (lRabattPct / 100)).toFixed(2);
+      const zep = +(lep - lRabatt).toFixed(2);
+      const lSkonto = +(zep * (lSkontoPct / 100)).toFixed(2);
+      const bep = +(zep - lSkonto).toFixed(2);
+      const bp = +(bep + bezugskosten).toFixed(2);
+      const hkz = +(bp * (hkzPct / 100)).toFixed(2);
+      const skp = +(bp + hkz).toFixed(2);
+      const gewinn = +(skp * (gewinnPct / 100)).toFixed(2);
+      const bvp = +(skp + gewinn).toFixed(2);
+      // Im Hundert für Kundenskonto (ohne Vertreterprovision)
+      const zvp = +(bvp / (1 - kSkontoPct / 100)).toFixed(2);
+      const kSkonto = +(zvp - bvp).toFixed(2);
+      // Im Hundert für Kundenrabatt
+      const lvp = +(zvp / (1 - kRabattPct / 100)).toFixed(2);
+      const kRabatt = +(lvp - zvp).toFixed(2);
+
+      currentTask = {
+        fields: [
+          { id: 'lRabatt', label: `- Liefererrabatt (${lRabattPct} %)`, sol: lRabatt },
+          { id: 'zep', label: `= Zieleinkaufspreis (ZEP)`, sol: zep },
+          { id: 'lSkonto', label: `- Liefererskonto (${lSkontoPct} %)`, sol: lSkonto },
+          { id: 'bep', label: `= Bareinkaufspreis (BEP)`, sol: bep },
+          { id: 'bp', label: `= Bezugspreis / Einstandspreis (+ ${bezugskosten.toFixed(2)} € Bezugskosten)`, sol: bp },
+          { id: 'hkz', label: `+ Handlungskostenzuschlag (${hkzPct} %)`, sol: hkz },
+          { id: 'skp', label: `= Selbstkostenpreis (SKP)`, sol: skp },
+          { id: 'gewinn', label: `+ Gewinnzuschlag (${gewinnPct} %)`, sol: gewinn },
+          { id: 'bvp', label: `= Barverkaufspreis (BVP)`, sol: bvp },
+          { id: 'kSkonto', label: `+ Kundenskonto (${kSkontoPct} % vom ZVP - im Hundert!)`, sol: kSkonto },
+          { id: 'zvp', label: `= Zielverkaufspreis (ZVP)`, sol: zvp },
+          { id: 'kRabatt', label: `+ Kundenrabatt (${kRabattPct} % vom LVP - im Hundert!)`, sol: kRabatt },
+          { id: 'lvp', label: `= Listenverkaufspreis (LVP netto)`, sol: lvp }
+        ]
+      };
+
+      let rowsHtml = currentTask.fields.map(f => `
+        <div class="grid grid-cols-1 sm:grid-cols-12 items-center gap-2 py-2 border-b border-slate-100">
+          <label class="sm:col-span-7 text-sm font-medium text-slate-700">${f.label}</label>
+          <div class="sm:col-span-3">
+            <input id="hk-${f.id}" type="number" step="0.01" placeholder="0,00" class="w-full border p-2 rounded-lg text-right font-mono text-sm" />
+          </div>
+          <div id="hk-fb-${f.id}" class="sm:col-span-2 text-xs font-bold"></div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 text-sm">
+          <b>Gegebene Daten der Vorwärtskalkulation:</b><br>
+          Listeneinkaufspreis (LEP netto): <b>${lep.toFixed(2)} €</b> | Bezugskosten: <b>${bezugskosten.toFixed(2)} €</b><br>
+          <span class="text-xs text-slate-500">Hinweis: Auf 2 Nachkommastellen kaufmännisch runden.</span>
+        </div>
+        <div class="space-y-1">${rowsHtml}</div>
+        <button id="hk-check-btn" onclick="checkHandelskalkulation()" class="mt-6 w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700">
+          Kalkulation prüfen & Punkte speichern
+        </button>
+        <div id="hk-summary" class="mt-4 p-4 rounded-xl hidden"></div>
+      `;
+    }
+
+    async function checkHandelskalkulation() {
+      let correctCount = 0;
+      const total = currentTask.fields.length;
+
+      currentTask.fields.forEach(f => {
+        const inputEl = document.getElementById(`hk-${f.id}`);
+        const fbEl = document.getElementById(`hk-fb-${f.id}`);
+        const val = parseFloat((inputEl.value || '').replace(',', '.'));
+        const isOk = !isNaN(val) && Math.abs(val - f.sol) <= 0.05;
+
+        if (isOk) {
+          correctCount++;
+          inputEl.classList.add('border-green-500', 'bg-green-50');
+          fbEl.innerHTML = `<span class="text-green-600">✅ Richtig</span>`;
+        } else {
+          inputEl.classList.add('border-red-500', 'bg-red-50');
+          fbEl.innerHTML = `<span class="text-red-600">❌ ${f.sol.toFixed(2)} €</span>`;
+        }
+      });
+
+      const pct = Math.round((correctCount / total) * 100);
+      const sumEl = document.getElementById('hk-summary');
+      sumEl.classList.remove('hidden');
+      sumEl.className = `mt-4 p-4 rounded-xl font-semibold ${pct >= 70 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`;
+      sumEl.innerHTML = `Ergebnis: <b>${correctCount} von ${total} Zwischenschritten richtig (${pct}%)</b> – Dein Ergebnis wurde in Supabase für den Fortschrittsvergleich gespeichert!`;
+      document.getElementById('hk-check-btn').disabled = true;
+      document.getElementById('hk-check-btn').classList.add('opacity-50');
+
+      await recordAttempt(correctCount, total);
+    }
+
+    // =========================================================================
+    // MODUL 2: INCOTERMS & LIEFERBEDINGUNGEN (Interaktive Zeitachse)
+    // =========================================================================
+    const INCOTERM_STATIONS = [
+      { id: 1, name: '1. Werk Verkäufer' },
+      { id: 2, name: '2. Erster Frachtführer' },
+      { id: 3, name: '3. Bord Verschiffungshafen' },
+      { id: 4, name: '4. Bestimmungshafen' },
+      { id: 5, name: '5. Bestimmungsort Käufer' }
+    ];
+
+    const INCOTERM_CASES = [
+      { code: 'EXW', name: 'Ex Works (Ab Werk)', risk: 1, cost: 1, hint: 'Käufer trägt fast alle Kosten und Gefahren ab Bereitstellung im Werk des Verkäufers.' },
+      { code: 'FCA', name: 'Free Carrier (Frei Frachtführer)', risk: 2, cost: 2, hint: 'Übergabe an den ersten Frachtführer: Dort gehen Gefahr und Kosten gleichzeitig über.' },
+      { code: 'FOB', name: 'Free On Board (Frei an Bord)', risk: 3, cost: 3, hint: 'Klassische Seeklausel (Einpunkt-Klausel): Kosten und Gefahr gehen an Bord im Verschiffungshafen über.' },
+      { code: 'CIF', name: 'Cost, Insurance and Freight', risk: 3, cost: 4, hint: 'Zweipunkt-Klausel! Gefahr geht schon im Verschiffungshafen (3) über, Verkäufer zahlt aber Kosten & Versicherung bis zum Bestimmungshafen (4).' },
+      { code: 'DDP', name: 'Delivered Duty Paid (Geliefert verzollt)', risk: 5, cost: 5, hint: 'Maximalpflicht für den Verkäufer: Kosten und Gefahr gehen erst am Bestimmungsort beim Käufer (inkl. Einfuhrzoll) über.' }
+    ];
+
+    function renderIncoterms() {
+      const container = document.getElementById('task-container');
+      const item = INCOTERM_CASES[(currentStep - 1) % INCOTERM_CASES.length];
+      currentTask = { item, selectedRisk: null, selectedCost: null };
+
+      let stationsHtml = INCOTERM_STATIONS.map(st => `
+        <div class="bg-slate-50 border-2 border-slate-200 rounded-xl p-3 text-center flex flex-col justify-between"
+             ondragover="event.preventDefault()"
+             ondrop="handleIncoDrop(event, ${st.id})">
+          <div class="text-xs font-bold text-slate-700 mb-2">${st.name}</div>
+          <div class="space-y-1.5 my-2">
+            <button id="inco-risk-${st.id}" onclick="setIncoPoint('risk', ${st.id})" class="w-full text-xs py-1.5 px-2 rounded border border-slate-300 bg-white hover:bg-amber-50">
+              ⚡ Gefahrenübergang hier?
+            </button>
+            <button id="inco-cost-${st.id}" onclick="setIncoPoint('cost', ${st.id})" class="w-full text-xs py-1.5 px-2 rounded border border-slate-300 bg-white hover:bg-blue-50">
+              💶 Kostenübergang hier?
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl mb-5">
+          <div class="text-xs uppercase font-bold text-indigo-600">Incoterms® 2020 Zeitachsen-Zuordnung</div>
+          <div class="text-xl font-bold text-indigo-950 mt-1">${item.code} – ${item.name}</div>
+          <p class="text-sm text-indigo-800 mt-1">Ziehe die beiden Marker auf die richtige Station der Transportkette (oder klicke direkt auf die Buttons in der jeweiligen Station):</p>
+          <div class="flex flex-wrap gap-3 mt-3">
+            <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain', 'risk')" class="cursor-grab bg-amber-500 text-white text-xs font-bold px-3 py-2 rounded-lg shadow">
+              ✋ Ziehen: ⚡ Gefahrenübergang
+            </div>
+            <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain', 'cost')" class="cursor-grab bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow">
+              ✋ Ziehen: 💶 Kostenübergang
+            </div>
+          </div>
+        </div>
+
+        <!-- Grafische Transport-Zeitachse -->
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-6">${stationsHtml}</div>
+
+        <button id="inco-check-btn" onclick="checkIncoterms()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700">
+          Zuordnung prüfen & speichern
+        </button>
+        <div id="inco-feedback" class="mt-4 p-4 rounded-xl hidden"></div>
+      `;
+    }
+
+    function handleIncoDrop(e, stationId) {
+      e.preventDefault();
+      const type = e.dataTransfer.getData('text/plain');
+      if (type === 'risk' || type === 'cost') setIncoPoint(type, stationId);
+    }
+
+    function setIncoPoint(type, stationId) {
+      if (type === 'risk') currentTask.selectedRisk = stationId;
+      if (type === 'cost') currentTask.selectedCost = stationId;
+
+      INCOTERM_STATIONS.forEach(st => {
+        const rBtn = document.getElementById(`inco-risk-${st.id}`);
+        const cBtn = document.getElementById(`inco-cost-${st.id}`);
+        rBtn.className = st.id === currentTask.selectedRisk
+          ? 'w-full text-xs py-1.5 px-2 rounded font-bold bg-amber-500 text-white'
+          : 'w-full text-xs py-1.5 px-2 rounded border border-slate-300 bg-white';
+        cBtn.className = st.id === currentTask.selectedCost
+          ? 'w-full text-xs py-1.5 px-2 rounded font-bold bg-blue-600 text-white'
+          : 'w-full text-xs py-1.5 px-2 rounded border border-slate-300 bg-white';
+      });
+    }
+
+    async function checkIncoterms() {
+      const { item, selectedRisk, selectedCost } = currentTask;
+      if (!selectedRisk || !selectedCost) {
+        alert('Bitte wähle sowohl den Gefahrenübergang als auch den Kostenübergang auf der Zeitachse aus!');
+        return;
+      }
+
+      let pts = 0;
+      if (selectedRisk === item.risk) pts += 50;
+      if (selectedCost === item.cost) pts += 50;
+
+      const fb = document.getElementById('inco-feedback');
+      fb.classList.remove('hidden');
+      fb.className = `mt-4 p-4 rounded-xl text-sm ${pts === 100 ? 'bg-green-100 text-green-900' : 'bg-amber-100 text-amber-900'}`;
+      fb.innerHTML = `
+        <b>Ergebnis: ${pts} / 100 Punkte</b><br>
+        • Gefahrenübergang bei <b>Station ${item.risk}</b> (${selectedRisk === item.risk ? '✅ Richtig' : '❌ Falsch'})<br>
+        • Kostenübergang bei <b>Station ${item.cost}</b> (${selectedCost === item.cost ? '✅ Richtig' : '❌ Falsch'})<br>
+        <span class="block mt-2 text-xs">${item.hint}</span>
+      `;
+      document.getElementById('inco-check-btn').disabled = true;
+      await recordAttempt(pts, 100);
+    }
+
+    // =========================================================================
+    // MODUL 3: BUCHUNGSSATZ-GENERATOR (Kaufmännische Steuerung)
+    // =========================================================================
+    const ACCOUNTS = [
+      'Wareneingang (Aufwendungen für Waren)',
+      'Bezugskosten',
+      'Vorsteuer (19%)',
+      'Verbindlichkeiten a. LL.',
+      'Forderungen a. LL.',
+      'Umsatzerlöse für Handelswaren',
+      'Umsatzsteuer (19%)',
+      'Bank',
+      'Kasse'
+    ];
+
+    const BOOKING_CASES = [
+      {
+        text: '1. Zielkauf von Handelswaren laut Eingangsrechnung: Warenwert 5.000,00 € netto + 19 % Umsatzsteuer (950,00 €) = 5.950,00 € brutto.',
+        soll1: 'Wareneingang (Aufwendungen für Waren)', soll1Amt: 5000,
+        soll2: 'Vorsteuer (19%)', soll2Amt: 950,
+        haben1: 'Verbindlichkeiten a. LL.', haben1Amt: 5950
+      },
+      {
+        text: '2. Zielverkauf von Handelswaren an einen Kunden: Warenwert 5.600,00 € netto + 19 % Umsatzsteuer (1.064,00 €) = 6.664,00 € brutto.',
+        soll1: 'Forderungen a. LL.', soll1Amt: 6664,
+        soll2: '--- (Kein 2. Konto)', soll2Amt: 0,
+        haben1: 'Umsatzerlöse für Handelswaren', haben1Amt: 5600,
+        haben2: 'Umsatzsteuer (19%)', haben2Amt: 1064
+      },
+      {
+        text: '3. Eingangsrechnung der Spedition für Frachtkosten beim Wareneinkauf auf Ziel: 200,00 € netto + 38,00 € Vorsteuer = 238,00 € brutto.',
+        soll1: 'Bezugskosten', soll1Amt: 200,
+        soll2: 'Vorsteuer (19%)', soll2Amt: 38,
+        haben1: 'Verbindlichkeiten a. LL.', haben1Amt: 238
+      },
+      {
+        text: '4. Ausgleich einer Lieferantenrechnung über 10.602,90 € per Banküberweisung (ohne Skontoabzug).',
+        soll1: 'Verbindlichkeiten a. LL.', soll1Amt: 10602.90,
+        soll2: '--- (Kein 2. Konto)', soll2Amt: 0,
+        haben1: 'Bank', haben1Amt: 10602.90
+      }
+    ];
+
+    function renderBuchungssatz() {
+      const container = document.getElementById('task-container');
+      const bCase = BOOKING_CASES[(currentStep - 1) % BOOKING_CASES.length];
+      currentTask = bCase;
+
+      const optionsHtml = ['--- (Kein 2. Konto)', ...ACCOUNTS].map(a => `<option value="${a}">${a}</option>`).join('');
+
+      container.innerHTML = `
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-5 text-sm font-medium text-slate-800">
+          <b>Geschäftsvorfall:</b><br>${bCase.text}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- SOLL SEITE -->
+          <div class="bg-blue-50/60 border border-blue-200 p-4 rounded-xl">
+            <h4 class="font-bold text-blue-900 mb-3">SOLL (Lastschrift)</h4>
+            <label class="text-xs font-semibold text-slate-600">1. Soll-Konto & Betrag (€):</label>
+            <select id="bs-soll1" class="w-full border p-2 rounded-lg text-sm mb-2 bg-white">${optionsHtml}</select>
+            <input id="bs-soll1-amt" type="number" step="0.01" placeholder="Betrag in €" class="w-full border p-2 rounded-lg text-sm mb-4 bg-white" />
+
+            <label class="text-xs font-semibold text-slate-600">2. Soll-Konto (falls Vorsteuer gebucht wird):</label>
+            <select id="bs-soll2" class="w-full border p-2 rounded-lg text-sm mb-2 bg-white">${optionsHtml}</select>
+            <input id="bs-soll2-amt" type="number" step="0.01" value="0" placeholder="Betrag in € (0 falls leer)" class="w-full border p-2 rounded-lg text-sm bg-white" />
+          </div>
+
+          <!-- HABEN SEITE -->
+          <div class="bg-amber-50/60 border border-amber-200 p-4 rounded-xl">
+            <h4 class="font-bold text-amber-900 mb-3">an HABEN (Gutschrift)</h4>
+            <label class="text-xs font-semibold text-slate-600">1. Haben-Konto & Betrag (€):</label>
+            <select id="bs-haben1" class="w-full border p-2 rounded-lg text-sm mb-2 bg-white">${optionsHtml}</select>
+            <input id="bs-haben1-amt" type="number" step="0.01" placeholder="Betrag in €" class="w-full border p-2 rounded-lg text-sm mb-4 bg-white" />
+
+            <label class="text-xs font-semibold text-slate-600">2. Haben-Konto (falls Umsatzsteuer gebucht wird):</label>
+            <select id="bs-haben2" class="w-full border p-2 rounded-lg text-sm mb-2 bg-white">${optionsHtml}</select>
+            <input id="bs-haben2-amt" type="number" step="0.01" value="0" placeholder="Betrag in € (0 falls leer)" class="w-full border p-2 rounded-lg text-sm bg-white" />
+          </div>
+        </div>
+
+        <button id="bs-check-btn" onclick="checkBuchungssatz()" class="mt-6 w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700">
+          Buchungssatz prüfen & speichern
+        </button>
+        <div id="bs-feedback" class="mt-4 p-4 rounded-xl hidden"></div>
+      `;
+    }
+
+    async function checkBuchungssatz() {
+      const s1 = document.getElementById('bs-soll1').value;
+      const s1a = parseFloat(document.getElementById('bs-soll1-amt').value || 0);
+      const s2 = document.getElementById('bs-soll2').value;
+      const s2a = parseFloat(document.getElementById('bs-soll2-amt').value || 0);
+      const h1 = document.getElementById('bs-haben1').value;
+      const h1a = parseFloat(document.getElementById('bs-haben1-amt').value || 0);
+      const h2 = document.getElementById('bs-haben2').value;
+      const h2a = parseFloat(document.getElementById('bs-haben2-amt').value || 0);
+
+      let pts = 0;
+      if (s1 === currentTask.soll1 && Math.abs(s1a - currentTask.soll1Amt) < 0.05) pts += 40;
+      if (s2 === currentTask.soll2 && Math.abs(s2a - currentTask.soll2Amt) < 0.05) pts += 20;
+      if (h1 === currentTask.haben1 && Math.abs(h1a - currentTask.haben1Amt) < 0.05) pts += 40;
+
+      const fb = document.getElementById('bs-feedback');
+      fb.classList.remove('hidden');
+      fb.className = `mt-4 p-4 rounded-xl text-sm ${pts >= 80 ? 'bg-green-100 text-green-900' : 'bg-red-100 text-red-900'}`;
+      fb.innerHTML = `
+        <b>Ergebnis: ${pts} / 100 Punkte</b><br>
+        <b>Musterlösung:</b><br>
+        SOLL: ${currentTask.soll1} (${currentTask.soll1Amt.toFixed(2)} €) ${currentTask.soll2Amt > 0 ? `+ ${currentTask.soll2} (${currentTask.soll2Amt.toFixed(2)} €)` : ''}<br>
+        an HABEN: ${currentTask.haben1} (${currentTask.haben1Amt.toFixed(2)} €) ${currentTask.haben2Amt ? `+ ${currentTask.haben2} (${currentTask.haben2Amt.toFixed(2)} €)` : ''}
+      `;
+      document.getElementById('bs-check-btn').disabled = true;
+      await recordAttempt(pts, 100);
+    }
+
+    // =========================================================================
+    // MODUL 4: WISO-SPEED-QUIZ (Mit Countdown-Timer)
+    // =========================================================================
+    const WISO_QUESTIONS = [
+      {
+        q: 'Ab wie vielen ständig wahlberechtigten Arbeitnehmern im Betrieb kann gemäß BetrVG ein Betriebsrat gewählt werden?',
+        options: ['Ab 5 Arbeitnehmern (von denen 3 wählbar sind)', 'Ab 10 Arbeitnehmern', 'Ab 20 Arbeitnehmern', 'Ab 50 Arbeitnehmern'],
+        correct: 0
+      },
+      {
+        q: 'Wie lange darf die Probezeit in einem Berufsausbildungsverhältnis nach dem Berufsbildungsgesetz (BBiG) dauern?',
+        options: ['Genau 6 Monate', 'Mindestens 1 Monat und höchstens 4 Monate', 'Höchstens 2 Monate', 'Bis zu 12 Monate'],
+        correct: 1
+      },
+      {
+        q: 'Welcher Vertragstyp liegt vor, wenn eine Sache gegen Entgelt zeitweise zum Gebrauch überlassen wird (§ 535 BGB)?',
+        options: ['Leihvertrag', 'Pachtvertrag', 'Mietvertrag', 'Werkvertrag'],
+        correct: 2
+      },
+      {
+        q: 'Welche Rechtsfolge tritt beim Handelskauf (B2B) nach § 377 HGB ein, wenn offene Mängel nicht unverzüglich gerügt werden?',
+        options: ['Der Kaufvertrag ist automatisch nichtig', 'Die Ware gilt als genehmigt (Gewährleistungsansprüche gehen verloren)', 'Man hat 2 Jahre Zeit für die Reklamation', 'Der Lieferant muss automatisch 10% Rabatt geben'],
+        correct: 1
+      }
+    ];
+
+    function renderWisoQuiz() {
+      const container = document.getElementById('task-container');
+      const item = WISO_QUESTIONS[(currentStep - 1) % WISO_QUESTIONS.length];
+      let timeLeft = 30;
+      currentTask = { item, answered: false };
+
+      let btnsHtml = item.options.map((opt, idx) => `
+        <button id="wiso-opt-${idx}" onclick="answerWiso(${idx})" class="w-full text-left p-3.5 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition font-medium text-sm">
+          ${opt}
+        </button>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="flex justify-between items-center bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
+          <span class="text-xs font-bold uppercase text-red-700">⏱️ Prüfungsdruck-Timer</span>
+          <span id="wiso-timer" class="text-lg font-extrabold text-red-600">30 Sek.</span>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 mb-4">${item.q}</h3>
+        <div class="space-y-2.5">${btnsHtml}</div>
+        <div id="wiso-feedback" class="mt-4 p-4 rounded-xl hidden"></div>
+      `;
+
+      quizTimer = setInterval(() => {
+        timeLeft--;
+        const tEl = document.getElementById('wiso-timer');
+        if (tEl) tEl.textContent = `${timeLeft} Sek.`;
+        if (timeLeft <= 0) {
+          clearInterval(quizTimer);
+          if (!currentTask.answered) answerWiso(-1);
+        }
+      }, 1000);
+    }
+
+    async function answerWiso(choiceIdx) {
+      if (currentTask.answered) return;
+      currentTask.answered = true;
+      if (quizTimer) clearInterval(quizTimer);
+
+      const isOk = choiceIdx === currentTask.item.correct;
+      const fb = document.getElementById('wiso-feedback');
+      fb.classList.remove('hidden');
+
+      if (isOk) {
+        fb.className = 'mt-4 p-4 rounded-xl bg-green-100 text-green-900 font-semibold text-sm';
+        fb.innerHTML = `✅ Perfekt! Unter Zeitdruck richtig gelöst (+100% in Statistik gespeichert).`;
+      } else {
+        fb.className = 'mt-4 p-4 rounded-xl bg-red-100 text-red-900 font-semibold text-sm';
+        fb.innerHTML = `❌ ${choiceIdx === -1 ? 'Zeit abgelaufen!' : 'Leider falsch.'} Richtige Antwort: <b>${currentTask.item.options[currentTask.item.correct]}</b>`;
+      }
+
+      await recordAttempt(isOk ? 100 : 0, 100);
+    }
+
+    // =========================================================================
+    // MODUL 5: SPACED-REPETITION-SYSTEM (Leitner-Karteikarten in Supabase)
+    // =========================================================================
+    const FLASHCARDS = [
+      { id: 'hgb_377', front: '§ 377 HGB – Untersuchungs- und Rügepflicht beim Handelskauf', back: 'Beim beiderseitigen Handelskauf muss der Käufer die Ware unverzüglich nach Ablieferung untersuchen und offene Mängel unverzüglich rügen, sonst gilt die Ware als genehmigt.' },
+      { id: 'bgb_433', front: '§ 433 BGB – Vertragstypische Pflichten beim Kaufvertrag', back: 'Verkäufer: Übergabe der Sache frei von Sach- und Rechtsmängeln & Eigentumsverschaffung. Käufer: Bezahlung des Kaufpreises und Abnahme der Kaufsache.' },
+      { id: 'lager_umschlag', front: 'Formel: Lagerumschlagshäufigkeit', back: 'Lagerumschlagshäufigkeit = Wareneinsatz / Durchschnittlicher Lagerbestand. (Zeigt, wie oft das Lager im Jahr komplett umgeschlagen wurde).' },
+      { id: 'bezugskalk_im_hundert', front: 'Warum werden Kundenskonto & Kundenrabatt in der Vorwärtskalkulation "im Hundert" gerechnet?', back: 'Weil der Kunde Skonto und Rabatt später vom höheren Zielverkaufspreis bzw. Listenverkaufspreis abzieht (Basis = 100%, der Barverkaufspreis entspricht also z.B. 98% bei 2% Skonto).' },
+      { id: 'aevo_4stufen', front: 'Die 4-Stufen-Methode der Unterweisung (AEVO)', back: '1. Vorbereiten (Motivierender Einstieg)\n2. Vormachen und Erklären (durch Ausbilder)\n3. Nachmachen und erklären lassen (durch Azubi)\n4. Üben und Festigen (Selbstständige Vertiefung)' }
+    ];
+
+    function renderSpacedRepetition() {
+      const container = document.getElementById('task-container');
+
+      // Sortiere Karten nach Leitner-Box (Box 1 & häufig falsch beantwortete zuerst!)
+      const sortedCards = [...FLASHCARDS].sort((a, b) => {
+        const boxA = flashcardsDB[a.id]?.box || 1;
+        const boxB = flashcardsDB[b.id]?.box || 1;
+        if (boxA !== boxB) return boxA - boxB; // Niedrigere Box hat Vorrang!
+        const wrongA = flashcardsDB[a.id]?.wrong_count || 0;
+        const wrongB = flashcardsDB[b.id]?.wrong_count || 0;
+        return wrongB - wrongA; // Häufiger falsch beantwortete zuerst!
+      });
+
+      const card = sortedCards[0];
+      const progress = flashcardsDB[card.id] || { box: 1, wrong_count: 0, correct_count: 0 };
+      currentTask = { card, progress };
+
+      // Leitner-Box Übersicht bauen
+      let boxesHtml = [1, 2, 3, 4, 5].map(b => {
+        const count = FLASHCARDS.filter(c => (flashcardsDB[c.id]?.box || 1) === b).length;
+        return `
+          <div class="p-2 rounded-lg border text-center ${progress.box === b ? 'bg-blue-600 text-white border-blue-600 font-bold' : 'bg-slate-50 text-slate-600'}">
+            <div class="text-xs">Box ${b}</div>
+            <div class="text-sm font-bold">${count} Karten</div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="grid grid-cols-5 gap-2 mb-6">${boxesHtml}</div>
+
+        <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 text-center shadow-sm">
+          <div class="text-xs font-bold uppercase text-amber-700 mb-2">
+            Aktuell in Leitner-Box ${progress.box} • (Richtig: ${progress.correct_count}x | Falsch: ${progress.wrong_count}x)
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 my-4">${card.front}</h3>
+
+          <button id="fc-reveal-btn" onclick="revealFlashcard()" class="mt-2 bg-slate-800 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-900">
+            🔄 Karte umdrehen (Lösung zeigen)
+          </button>
+
+          <div id="fc-back" class="hidden mt-6 pt-6 border-t border-amber-200 text-left">
+            <div class="text-xs font-bold uppercase text-slate-500 mb-1">Definition / Prüfungsantwort:</div>
+            <p class="text-slate-800 font-medium whitespace-pre-line mb-6">${card.back}</p>
+
+            <div class="flex gap-3">
+              <button onclick="gradeFlashcard(false)" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-red-700">
+                ❌ Nicht gewusst (Zurück in Box 1)
+              </button>
+              <button onclick="gradeFlashcard(true)" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700">
+                ✅ Gewusst (Aufstieg in Box ${Math.min(5, progress.box + 1)})
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function revealFlashcard() {
+      document.getElementById('fc-reveal-btn').classList.add('hidden');
+      document.getElementById('fc-back').classList.remove('hidden');
+    }
+
+    async function gradeFlashcard(known) {
+      const { card, progress } = currentTask;
+      const newBox = known ? Math.min(5, progress.box + 1) : 1;
+      const newCorrect = progress.correct_count + (known ? 1 : 0);
+      const newWrong = progress.wrong_count + (known ? 0 : 1);
+
+      const payload = {
+        user_id: currentUser.id,
+        card_id: card.id,
+        box: newBox,
+        correct_count: newCorrect,
+        wrong_count: newWrong,
+        updated_at: new Date().toISOString()
+      };
+
+      await supabaseClient.from('flashcard_progress').upsert(payload);
+      flashcardsDB[card.id] = payload;
+
+      await recordAttempt(known ? 100 : 0, 100);
+      nextStep();
     }
 
     init();
