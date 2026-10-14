@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IHK-Lernapp | Groß- und Außenhandel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
+
+  <!-- LOGIN BEREICH -->
+  <div id="auth-view" class="max-w-md mx-auto mt-16 bg-white p-6 rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold text-blue-700 mb-2">🎓 IHK-Lernapp Login</h1>
+    <p class="text-sm text-slate-500 mb-6">Speichere deinen Fortschritt & vergleiche deine Ergebnisse von überall.</p>
+    
+    <input id="email" type="email" placeholder="E-Mail-Adresse" class="w-full p-3 border rounded-lg mb-3" />
+    <input id="password" type="password" placeholder="Passwort (mind. 6 Zeichen)" class="w-full p-3 border rounded-lg mb-4" />
+    <p id="auth-msg" class="text-sm text-red-600 mb-3 hidden"></p>
+
+    <div class="flex gap-3">
+      <button onclick="login()" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">Einloggen</button>
+      <button onclick="signup()" class="flex-1 bg-slate-200 text-slate-800 py-3 rounded-lg font-semibold hover:bg-slate-300">Registrieren</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD BEREICH -->
+  <div id="dashboard-view" class="max-w-4xl mx-auto p-4 md:p-8 hidden">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-slate-900">🎓 IHK-Lernapp Dashboard</h1>
+      <button onclick="logout()" class="text-sm bg-white border px-4 py-2 rounded-lg hover:bg-slate-50">Abmelden</button>
+    </div>
+
+    <!-- WO WAR ICH ZULETZT? -->
+    <div id="resume-box" class="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hidden">
+      <div>
+        <div class="text-xs font-bold uppercase text-blue-600 tracking-wider">📍 Zuletzt stehengeblieben</div>
+        <div id="resume-text" class="text-lg font-semibold text-blue-950 mt-1"></div>
+      </div>
+      <button onclick="resumeLastState()" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-blue-700 w-full sm:w-auto">
+        Genau hier weitermachen →
+      </button>
+    </div>
+
+    <!-- MODULE & VERBESSERUNGS-VERGLEICH -->
+    <h2 class="text-lg font-bold mb-3">📊 Deine Bausteine & Vorher/Nachher-Vergleich</h2>
+    <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+  </div>
+
+  <!-- AKTIVES LERN-MODUL -->
+  <div id="module-view" class="max-w-3xl mx-auto p-4 md:p-8 hidden">
+    <button onclick="closeModule()" class="text-sm bg-white border px-4 py-2 rounded-lg mb-4 hover:bg-slate-50">
+      ← Zurück zur Übersicht (Stand ist gespeichert)
+    </button>
+
+    <div class="bg-white p-6 rounded-xl shadow-sm border">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h2 id="active-module-title" class="text-xl font-bold text-blue-700"></h2>
+        <span id="active-step-badge" class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full"></span>
+      </div>
+
+      <div id="task-container" class="my-4"></div>
+
+      <div class="flex flex-wrap gap-3 mt-6 pt-4 border-t">
+        <button onclick="nextStep()" class="bg-slate-800 text-white px-4 py-2.5 rounded-lg text-sm font-medium">
+          Nächste Aufgabe (Stand speichern)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // DEINE FERTIGE SUPABASE VERBINDUNG:
+    // =========================================================================
+    const SUPABASE_URL = 'https://kvzbtrbgxhkrdbrbygek.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_7hdJRr6wjiHFks9-M6K9uA_-XLwgFDb';
+    // =========================================================================
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const MODULES = ['Handelskalkulation', 'Lagerkennziffern', 'Deckungsbeitrag', 'Buchführung & GuV'];
+
+    let currentUser = null;
+    let attempts = [];
+    let userState = null;
+    let currentModule = null;
+    let currentStep = 1;
+    let currentTask = null;
+
+    async function init() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        await loadUserData();
+        showView('dashboard');
+      }
+    }
+
+    function showView(view) {
+      document.getElementById('auth-view').classList.toggle('hidden', view !== 'auth');
+      document.getElementById('dashboard-view').classList.toggle('hidden', view !== 'dashboard');
+      document.getElementById('module-view').classList.toggle('hidden', view !== 'module');
+    }
+
+    async function login() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) return showError(error.message);
+      currentUser = data.user;
+      await loadUserData();
+      showView('dashboard');
+    }
+
+    async function signup() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) return showError(error.message);
+      currentUser = data.user;
+      await loadUserData();
+      showView('dashboard');
+    }
+
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      showView('auth');
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('auth-msg');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    async function loadUserData() {
+      const { data: att } = await supabaseClient
+        .from('learning_attempts')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: true });
+      attempts = att || [];
+
+      const { data: st } = await supabaseClient
+        .from('user_state')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      userState = st;
+
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      const resumeBox = document.getElementById('resume-box');
+      if (userState && userState.last_module) {
+        resumeBox.classList.remove('hidden');
+        document.getElementById('resume-text').textContent =
+          `${userState.last_module} – Aufgabe ${userState.last_step}`;
+      } else {
+        resumeBox.classList.add('hidden');
+      }
+
+      const grid = document.getElementById('modules-grid');
+      grid.innerHTML = '';
+
+      MODULES.forEach(mod => {
+        const modAttempts = attempts.filter(a => a.module_name === mod);
+        let statsHtml = `<p class="text-sm text-slate-400 my-3">Noch keine Ergebnisse gespeichert.</p>`;
+
+        if (modAttempts.length > 0) {
+          const first = Math.round((modAttempts[0].score / modAttempts[0].max_score) * 100);
+          const latest = Math.round((modAttempts[modAttempts.length - 1].score / modAttempts[modAttempts.length - 1].max_score) * 100);
+          const best = Math.max(...modAttempts.map(a => Math.round((a.score / a.max_score) * 100)));
+          const diff = latest - first;
+          const diffColor = diff >= 0 ? 'text-green-600' : 'text-red-600';
+          const diffSign = diff >= 0 ? `+${diff}% verbessert` : `${diff}%`;
+
+          statsHtml = `
+            <div class="text-sm space-y-1 my-3 bg-slate-50 p-3 rounded-lg border">
+              <div class="flex justify-between"><span>Versuche:</span> <b>${modAttempts.length}</b></div>
+              <div class="flex justify-between"><span>1. Versuch → Letzter:</span> <b>${first}% → ${latest}%</b></div>
+              <div class="flex justify-between"><span>Bestwert:</span> <b>${best}%</b></div>
+              <div class="flex justify-between border-t pt-1 mt-1 font-bold ${diffColor}">
+                <span>Entwicklung:</span> <span>${diffSign}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        const savedStep = (userState && userState.last_module === mod) ? userState.last_step : 1;
+
+        grid.innerHTML += `
+          <div class="bg-white p-5 rounded-xl shadow-sm border flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-lg text-slate-800">${mod}</h3>
+              ${statsHtml}
+            </div>
+            <button onclick="openModule('${mod}', ${savedStep})" class="w-full mt-2 bg-blue-50 text-blue-700 border border-blue-200 py-2.5 rounded-lg font-medium hover:bg-blue-100">
+              Training starten (Aufgabe ${savedStep})
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    async function openModule(modName, step) {
+      currentModule = modName;
+      currentStep = step;
+      await saveBookmark(modName, step);
+      document.getElementById('active-module-title').textContent = modName;
+      document.getElementById('active-step-badge').textContent = `Aufgabe ${step}`;
+      generateTask();
+      showView('module');
+    }
+
+    function resumeLastState() {
+      if (userState) openModule(userState.last_module, userState.last_step);
+    }
+
+    async function nextStep() {
+      currentStep += 1;
+      await saveBookmark(currentModule, currentStep);
+      document.getElementById('active-step-badge').textContent = `Aufgabe ${currentStep}`;
+      generateTask();
+    }
+
+    async function closeModule() {
+      await loadUserData();
+      showView('dashboard');
+    }
+
+    async function saveBookmark(modName, step) {
+      const payload = {
+        user_id: currentUser.id,
+        last_module: modName,
+        last_step: step,
+        updated_at: new Date().toISOString()
+      };
+      await supabaseClient.from('user_state').upsert(payload);
+      userState = payload;
+    }
+
+    function generateTask() {
+      const container = document.getElementById('task-container');
+      const listPrice = (Math.floor(Math.random() * 40) + 10) * 10;
+      const discount = [10, 15, 20][Math.floor(Math.random() * 3)];
+      const solution = +(listPrice * (1 - discount / 100)).toFixed(2);
+      currentTask = { solution };
+
+      container.innerHTML = `
+        <p class="text-slate-700 mb-4">
+          Ein Großhändler kauft Ware zu einem <b>Listeneinkaufspreis (LEP) von ${listPrice},00 €</b> netto.
+          Der Lieferant gewährt <b>${discount} % Liefererrabatt</b>.
+          <br><br>Berechne den <b>Zieleinkaufspreis (ZEP)</b> in Euro:
+        </p>
+        <div class="flex gap-2">
+          <input id="user-answer" type="number" step="0.01" placeholder="Ergebnis in €" class="border p-2.5 rounded-lg flex-1" />
+          <button onclick="checkAnswer()" class="bg-green-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-green-700">
+            Prüfen & Ergebnis speichern
+          </button>
+        </div>
+        <div id="feedback-box" class="mt-3 text-sm font-semibold hidden"></div>
+      `;
+    }
+
+    async function checkAnswer() {
+      const val = parseFloat(document.getElementById('user-answer').value.replace(',', '.'));
+      const isCorrect = Math.abs(val - currentTask.solution) < 0.05;
+      const score = isCorrect ? 100 : 0;
+
+      const fb = document.getElementById('feedback-box');
+      fb.classList.remove('hidden');
+      if (isCorrect) {
+        fb.className = 'mt-3 text-sm font-semibold text-green-600';
+        fb.textContent = `✅ Richtig! (${currentTask.solution} €) – 100% wurden in deiner Statistik gespeichert!`;
+      } else {
+        fb.className = 'mt-3 text-sm font-semibold text-red-600';
+        fb.textContent = `❌ Leider falsch. Richtig wäre ${currentTask.solution} € gewesen. Versuch wurde gespeichert.`;
+      }
+
+      await supabaseClient.from('learning_attempts').insert({
+        user_id: currentUser.id,
+        module_name: currentModule,
+        score: score,
+        max_score: 100
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
