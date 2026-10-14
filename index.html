@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+    <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -79,10 +80,10 @@
 
   <script>
     // =========================================================================
-    // SUPABASE KONFIGURATION (Mit deinem funktionierenden Legacy Anon Key)
+    // SUPABASE KONFIGURATION (Mit deinem funktionierenden Key)
     // =========================================================================
     const SUPABASE_URL = 'https://kvzbtrbgxhkrdbrbygek.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2emJ0cmJneGhrcmRicmJ5Z2VrIxlucm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjQxNjYsImV4cCI6MjEwNzU0MDE2Nn0.DuNbXp8Kp8cUzF53z6BBi_GsjSwPUC5lG72duBFJQrc';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2emJ0cmJneGhrcmRicmJ5Z2VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjQxNjYsImV4cCI6MjEwNzU0MDE2Nn0.DuNbXp8Kp8cUzF53z6BBi_GsjSwPUC5lG72duBFJQrc';
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -306,7 +307,6 @@
       else if (currentModule === 'Spaced-Repetition') renderSpacedRepetition();
     }
 
-    // Module-Render-Funktionen (Handelskalkulation, Lager, DB, Incoterms, Buchungssatz, Quiz, Flashcards)
     function renderHandelskalkulation() {
       const container = document.getElementById('task-container');
       const lep = (Math.floor(Math.random() * 15) + 5) * 100;
@@ -378,95 +378,3 @@
 
     async function checkHandelskalkulation() {
       let correctCount = 0;
-      const total = currentTask.fields.length;
-      currentTask.fields.forEach(f => {
-        const inputEl = document.getElementById(`hk-${f.id}`);
-        const fbEl = document.getElementById(`hk-fb-${f.id}`);
-        const val = parseFloat((inputEl.value || '').replace(',', '.'));
-        if (!isNaN(val) && Math.abs(val - f.sol) <= f.tol) {
-          correctCount++;
-          inputEl.className = 'w-full border p-2 rounded-lg text-right font-mono text-sm border-green-500 bg-green-50';
-          fbEl.innerHTML = `<span class="text-green-600">✅ Richtig</span>`;
-        } else {
-          inputEl.className = 'w-full border p-2 rounded-lg text-right font-mono text-sm border-red-500 bg-red-50';
-          fbEl.innerHTML = `<span class="text-red-600">❌ ${f.sol}</span>`;
-        }
-      });
-      const pct = Math.round((correctCount / total) * 100);
-      const sumEl = document.getElementById('hk-summary');
-      sumEl.classList.remove('hidden');
-      sumEl.className = `mt-4 p-4 rounded-xl font-semibold ${pct >= 70 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`;
-      sumEl.innerHTML = `Ergebnis: <b>${correctCount} von ${total} richtig (${pct}%)</b> – Gespeichert!`;
-      document.getElementById('hk-check-btn').disabled = true;
-      await recordAttempt(correctCount, total);
-    }
-
-    function renderLagerkennziffern() {
-      const container = document.getElementById('task-container');
-      const avgStock = 30000; const jab = 24000; const jeb = 36000; const umschlag = 6; const wareneinsatz = 180000; const lagerdauer = 60; const jahreszins = 10; const lagerzinssatz = 1.67; const lagerzinsen = 500;
-      currentTask = {
-        correctSteps: 0,
-        steps: [
-          { title: '1. Ø Lagerbestand (€)', formula: '(JAB + JEB) / 2', sol: avgStock, unit: '€', tol: 0.1 },
-          { title: '2. Umschlagshäufigkeit', formula: 'Wareneinsatz / Ø Lagerbestand', sol: umschlag, unit: 'mal', tol: 0.1 },
-          { title: '3. Ø Lagerdauer (Tage)', formula: '360 / Umschlagshäufigkeit', sol: lagerdauer, unit: 'Tage', tol: 0.1 },
-          { title: '4. Lagerzinssatz (%)', formula: '(Jahreszins × Lagerdauer) / 360', sol: lagerzinssatz, unit: '%', tol: 0.05 },
-          { title: '5. Lagerzinsen (€)', formula: '(Ø Lagerbestand × Lagerzinssatz) / 100', sol: lagerzinsen, unit: '€', tol: 0.5 }
-        ]
-      };
-      let stepsHtml = currentTask.steps.map((st, idx) => `
-        <div id="lk-box-${idx}" class="p-4 rounded-xl border ${idx === 0 ? 'bg-white border-blue-300' : 'bg-slate-50 opacity-50 pointer-events-none'} mb-3">
-          <div class="font-bold text-sm mb-2">${st.title}</div>
-          <div class="flex gap-2">
-            <input id="lk-in-${idx}" type="number" step="0.01" placeholder="Ergebnis" class="border p-2 rounded-lg text-sm flex-1" />
-            <button type="button" id="lk-btn-${idx}" onclick="checkLagerStep(${idx})" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">Prüfen</button>
-          </div>
-          <div id="lk-fb-${idx}" class="mt-2 text-xs hidden"></div>
-        </div>
-      `).join('');
-      container.innerHTML = `<div class="bg-amber-50 p-4 rounded-xl mb-4 text-sm">Gegeben: JAB=${jab}€, JEB=${jeb}€, WE=${wareneinsatz}€, Zins=${jahreszins}%</div><div>${stepsHtml}</div><div id="lk-final" class="mt-4 p-4 rounded-xl hidden"></div>`;
-    }
-
-    async function checkLagerStep(idx) {
-      const st = currentTask.steps[idx];
-      const val = parseFloat((document.getElementById(`lk-in-${idx}`).value || '').replace(',', '.'));
-      const isOk = !isNaN(val) && Math.abs(val - st.sol) <= st.tol;
-      const fb = document.getElementById(`lk-fb-${idx}`);
-      fb.classList.remove('hidden');
-      if (isOk) {
-        currentTask.correctSteps++;
-        fb.className = 'mt-2 text-xs font-semibold text-green-700 bg-green-50 p-2 rounded';
-        fb.innerHTML = `✅ Richtig!`;
-      } else {
-        fb.className = 'mt-2 text-xs text-red-700 bg-red-50 p-2 rounded';
-        fb.innerHTML = `❌ Falsch. Korrekt wäre: ${st.sol} ${st.unit} (Formel: ${st.formula})`;
-      }
-      document.getElementById(`lk-btn-${idx}`).disabled = true;
-      if (idx + 1 < currentTask.steps.length) {
-        const next = document.getElementById(`lk-box-${idx + 1}`);
-        next.className = 'p-4 rounded-xl border bg-white border-blue-300 mb-3';
-      } else {
-        await recordAttempt(currentTask.correctSteps, currentTask.steps.length);
-      }
-    }
-
-    function renderDeckungsbeitrag() {
-      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">Deckungsbeitrag & PUG Modul aktiv. Klicke unten für nächste Aufgabe.</p>`;
-    }
-    function renderIncoterms() {
-      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">Incoterms Modul aktiv.</p>`;
-    }
-    function renderBuchungssatz() {
-      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">Buchungssatz Modul aktiv.</p>`;
-    }
-    function renderWisoQuiz() {
-      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">WiSo Quiz Modul aktiv.</p>`;
-    }
-    function renderSpacedRepetition() {
-      document.getElementById('task-container').innerHTML = `<p class="text-sm text-slate-600">Karteikarten Modul aktiv.</p>`;
-    }
-
-    init();
-  </script>
-</body>
-</html>
