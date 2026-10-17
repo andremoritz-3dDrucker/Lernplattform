@@ -47,7 +47,7 @@
     </div>
 
     <!-- MODULE & VERBESSERUNGS-VERGLEICH -->
-    <h2 class="text-lg font-bold mb-4 text-slate-800">📊 Deine 7 IHK-Trainingsmodule & Vorher/Nachher-Vergleich</h2>
+    <h2 class="text-lg font-bold mb-4 text-slate-800">📊 Deine 8 IHK-Trainingsmodule & Vorher/Nachher-Vergleich</h2>
     <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
   </div>
 
@@ -92,7 +92,8 @@
       { id: 'Deckungsbeitrag', icon: '📈', title: 'Deckungsbeitrag & PUG', desc: 'Stückdeckungsbeitrag, Gesamt-DB, Betriebsergebnis, Break-even-Menge sowie kurz- und langfristige Preisuntergrenze inkl. Zusatzauftrag (mit Zufallswerten).' },
       { id: 'Incoterms', icon: '🚢', title: 'Incoterms & Lieferbedingungen', desc: 'Zufälliger Incoterm 2020: deutsche Bezeichnung, Gefahrenübergang, Hauptlauf und Transportversicherung zuordnen – mit Zeitachse für Kosten und Gefahr.' },
       { id: 'Buchungssatz', icon: '📘', title: 'Buchungssatz-Generator', desc: 'Kaufmännische Steuerung: Geschäftsvorfälle (Einkauf, Fracht, Verkauf, Bank) per Soll an Haben inkl. Steuer buchen.' },
-      { id: 'WiSo-Quiz', icon: '⏱️', title: 'WiSo-Speed-Quiz', desc: 'Prüfungsfragen aus den WiSo-Bögen plus einfach erklärte Quizze zu EZB, Inflation, Angebot/Nachfrage, Marktarten und Marktformen (Polypol, Oligopol, Monopol …).' },
+      { id: 'WiSo-Quiz', icon: '⏱️', title: 'WiSo-Speed-Quiz', desc: 'Zufallsquiz mit 30 Fragen oder eigenes Thema, Zeit pro Frage wählbar (auch ohne Limit). Prüfungsfragen aus den WiSo-Bögen plus einfach erklärte Quizze zu EZB, Inflation, Angebot/Nachfrage, Marktarten und Marktformen (Polypol, Oligopol, Monopol …).' },
+      { id: 'WiSo-Simulation', icon: '📝', title: 'WiSo-Prüfungssimulation', desc: '30 Aufgaben in 60 Minuten wie in der IHK-Prüfung: 24 WiSo-Fragen plus 6 Rechenaufgaben (Lager, Kalkulation, Deckungsbeitrag u. a.), Auswertung mit IHK-Note.' },
       { id: 'Spaced-Repetition', icon: '🗂️', title: 'Spaced-Repetition Karteikarten', desc: 'Leitner-System (Box 1–5) für Mappe, BIP & Arbeitslosenquote, EZB & Inflation, Marktformen, Prokura, Werbungskosten & Sonderausgaben (Einkommensteuer) sowie den Bogen Sommer 2024.' }
     ];
 
@@ -309,6 +310,7 @@
       else if (currentModule === 'Incoterms') renderIncoterms();
       else if (currentModule === 'Buchungssatz') renderBuchungssatz();
       else if (currentModule === 'WiSo-Quiz') renderWisoQuiz();
+      else if (currentModule === 'WiSo-Simulation') renderWisoSimulation();
       else if (currentModule === 'Spaced-Repetition') renderSpacedRepetition();
     }
 
@@ -1202,6 +1204,7 @@
 
     let quizTopic = 'Alle';
     let quizCount = '10';
+    let quizSecs = 60;
     const QUIZ_DEFAULT_TOPIC = 'Prüfungsbögen (WiSo)';
     function quizTopicsMap() {
       const m = {};
@@ -1216,20 +1219,29 @@
         .concat(Object.keys(tp).map(k => `<option value="${esc(k)}" ${k === quizTopic ? 'selected' : ''}>${esc(k)} (${tp[k]} Fragen)</option>`));
       document.getElementById('task-container').innerHTML = `
         <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 text-sm">
-          <b>Wähle dein Thema.</b> Zu den Themen „EZB &amp; Inflation“, „Angebot, Nachfrage &amp; Marktarten“ und „Marktformen“ gibt es einfache Erklärungen nach jeder Antwort. Die „Prüfungsbögen“ sind echte Fragen aus den WiSo-Bögen.
+          <b>Wähle deine Zeit und starte.</b> Die Themen „EZB &amp; Inflation“, „Angebot, Nachfrage &amp; Marktarten“, „Marktformen“ und „Einkommensteuer“ haben einfache Erklärungen nach jeder Antwort. Die „Prüfungsbögen“ sind echte Fragen aus den WiSo-Bögen.
         </div>
+        <label class="text-xs font-semibold text-slate-500">Zeit pro Frage</label>
+        <select id="qz-time" class="w-full border rounded-lg p-2 text-sm mt-1 mb-4">
+          ${[['60', '60 Sekunden (Rechenaufgaben und Textantworten: doppelt)'], ['90', '90 Sekunden (Rechen- und Textaufgaben: doppelt)'], ['120', '120 Sekunden (Rechen- und Textaufgaben: doppelt)'], ['0', 'Ohne Zeitlimit']].map(([v, l]) => `<option value="${v}" ${parseInt(v, 10) === quizSecs ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+        <button type="button" onclick="startRandomQuiz()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 mb-2">🎲 Zufallsquiz starten – 30 Fragen aus allen Themen</button>
+        <div class="text-xs text-slate-500 text-center mb-4">oder stell dir dein Quiz selbst zusammen:</div>
         <label class="text-xs font-semibold text-slate-500">Thema</label>
         <select id="qz-topic" class="w-full border rounded-lg p-2 text-sm mt-1 mb-3">${opts.join('')}</select>
         <label class="text-xs font-semibold text-slate-500">Anzahl Fragen</label>
         <select id="qz-n" class="w-full border rounded-lg p-2 text-sm mt-1 mb-4">
-          ${[['10', '10 Fragen'], ['20', '20 Fragen'], ['all', 'Alle Fragen des Themas']].map(([v, l]) => `<option value="${v}" ${v === quizCount ? 'selected' : ''}>${l}</option>`).join('')}
+          ${[['10', '10 Fragen'], ['20', '20 Fragen'], ['30', '30 Fragen'], ['all', 'Alle Fragen des Themas']].map(([v, l]) => `<option value="${v}" ${v === quizCount ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
         <button type="button" onclick="startQuiz()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">Quiz starten →</button>`;
     }
 
-    function startQuiz() {
-      quizTopic = document.getElementById('qz-topic').value;
-      quizCount = document.getElementById('qz-n').value;
+    function startRandomQuiz() { startQuiz(true); }
+
+    function startQuiz(random) {
+      quizSecs = parseInt(document.getElementById('qz-time').value, 10);
+      if (random === true) { quizTopic = 'Alle'; quizCount = '30'; }
+      else { quizTopic = document.getElementById('qz-topic').value; quizCount = document.getElementById('qz-n').value; }
       const pool = QUIZ.filter(q => quizTopic === 'Alle' || (q.g || QUIZ_DEFAULT_TOPIC) === quizTopic);
       let list = shuffle(pool);
       if (quizCount !== 'all') list = list.slice(0, parseInt(quizCount, 10));
@@ -1245,7 +1257,7 @@
       const q = s.list[s.i];
       s.answered = false;
       s.chosen = [];
-      s.t = s.max = (q.t === 'num') ? 60 : (q.t === 'txt' ? 45 : 30);
+      s.t = s.max = (quizSecs || 60) * ((q.t === 'num' || q.t === 'txt') ? 2 : 1);
 
       let body = '';
       if (q.t === 'mc' || q.t === 'multi') {
@@ -1267,8 +1279,8 @@
           <span>Frage <b>${s.i + 1}</b> von ${s.list.length} · ${esc(q.s || '')}</span>
           <span>Richtig bisher: <b>${s.correct}</b></span>
         </div>
-        <div class="w-full bg-slate-200 rounded-full h-2 mb-1"><div id="q-bar" class="bg-blue-600 h-2 rounded-full" style="width:100%"></div></div>
-        <div id="q-time" class="text-xs text-right text-slate-500 mb-4">⏱️ ${s.t} Sek.</div>
+        <div class="w-full bg-slate-200 rounded-full h-2 mb-1 ${quizSecs ? '' : 'hidden'}"><div id="q-bar" class="bg-blue-600 h-2 rounded-full" style="width:100%"></div></div>
+        <div id="q-time" class="text-xs text-right text-slate-500 mb-4">${quizSecs ? '⏱️ ' + s.t + ' Sek.' : 'Ohne Zeitlimit'}</div>
         <div class="text-base font-semibold mb-3 whitespace-pre-line">${esc(q.q)}</div>
         ${q.t === 'multi' ? `<div class="text-xs text-blue-700 mb-2">Wähle ${q.a.length} Antworten.</div>` : ''}
         <div id="q-body">${body}</div>
@@ -1277,7 +1289,7 @@
       const inp = document.getElementById('q-in');
       if (inp) inp.focus();
 
-      quizTimer = setInterval(() => {
+      if (quizSecs) quizTimer = setInterval(() => {
         s.t--;
         const bar = document.getElementById('q-bar');
         const tm = document.getElementById('q-time');
@@ -1371,6 +1383,233 @@
         <button type="button" onclick="nextStep()" class="mt-4 w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">Neue Runde starten →</button>
       `;
       await recordAttempt(s.correct, total);
+    }
+
+    // =========================================================================
+    // WiSo-PRÜFUNGSSIMULATION (30 Aufgaben, 60 Minuten, mit Rechenaufgaben)
+    // =========================================================================
+    let simState = null;
+    const SIM_MIN = 60, SIM_WISO = 24, SIM_TOTAL = 30;
+
+    function simNumGens() {
+      return [
+        () => { const old = pick([100, 120, 125, 150, 200]), pct = pick([2, 2.5, 3, 4, 5, 6]); const nw = r2(old * (1 + pct / 100)); const a = r2((nw - old) / old * 100);
+          return { t: 'num', s: 'Rechnung', q: `Der Preisindex steigt von ${fmtN(old)} auf ${fmtN(nw)}. Wie hoch ist die Inflationsrate in % (2 Nachkommastellen)?`, a, tol: 0.06, u: '%', e: `(${fmtN(nw)} − ${fmtN(old)}) ÷ ${fmtN(old)} × 100 = ${fmtN(a)} %` }; },
+        () => { const et = randInt(40, 44) * 1000000 + randInt(0, 9) * 100000, al = randInt(15, 35) * 100000; const a = r2(al / (et + al) * 100);
+          return { t: 'num', s: 'Rechnung', q: `Erwerbstätige: ${fmtN(et)}, Arbeitslose: ${fmtN(al)}. Wie hoch ist die Arbeitslosenquote bezogen auf alle zivilen Erwerbspersonen in % (2 Nachkommastellen)?`, a, tol: 0.06, u: '%', e: `Erwerbspersonen = ${fmtN(et)} + ${fmtN(al)} = ${fmtN(et + al)}; ${fmtN(al)} ÷ ${fmtN(et + al)} × 100 = ${fmtN(a)} %` }; },
+        () => { const nom = randInt(30, 48) * 100, idx = pick([104, 108, 110, 115, 120, 125]); const a = Math.round(nom / idx * 1000) / 10;
+          return { t: 'num', s: 'Rechnung', q: `Das nominale BIP beträgt ${fmtN(nom)} Mrd. €, der Preisindex (Basisjahr = 100) liegt bei ${idx}. Wie hoch ist das reale BIP in Mrd. € (1 Nachkommastelle)?`, a, tol: 0.6, u: 'Mrd. €', e: `Reales BIP = nominales BIP ÷ Preisindex × 100 = ${fmtN(nom)} ÷ ${idx} × 100 = ${fmtN(a)} Mrd. €` }; },
+        () => { const old = randInt(30, 40) * 100, pct = pick([1, 1.5, 2, 2.5, 3, -1, -0.5]); const nw = r2(old * (1 + pct / 100)); const a = r2((nw - old) / old * 100);
+          return { t: 'num', s: 'Rechnung', q: `Das reale BIP sinkt bzw. steigt von ${fmtN(old)} Mrd. € auf ${fmtN(nw)} Mrd. €. Wie hoch ist das reale Wirtschaftswachstum in % (2 Nachkommastellen, bei Rückgang negativ)?`, a, tol: 0.06, u: '%', e: `(${fmtN(nw)} − ${fmtN(old)}) ÷ ${fmtN(old)} × 100 = ${fmtN(a)} %` }; },
+        () => { const km = randInt(5, 40), days = pick([210, 220, 230]); const a = r2(km * days * 0.38);
+          return { t: 'num', s: 'Rechnung', q: `Einfache Entfernung Wohnung–Arbeit: ${km} km, ${days} Arbeitstage, Entfernungspauschale 0,38 € je Entfernungskilometer (Stand 2026). Wie hoch sind die Werbungskosten für den Arbeitsweg in €?`, a, tol: 0.05, u: '€', e: `${km} km × ${days} Tage × 0,38 € = ${fmtN(a)} €` }; }
+      ];
+    }
+
+    function simCalcGens() {
+      return [
+        () => { // Lagerkennziffern
+          const u = pick([4, 5, 6, 8, 10, 12]), avg = randInt(10, 60) * 1000, d = randInt(1, 8) * 1000, zins = pick([4, 5, 6, 8, 10]);
+          const jab = avg - d, jeb = avg + d, we = u * avg, dauer = 360 / u, satzE = zins / u, satzR = r2(satzE);
+          return { t: 'calc', s: 'Rechenaufgabe Lager', q: `Lagerkennziffern: Jahresanfangsbestand ${fmtEUR(jab)} €, Jahresendbestand ${fmtEUR(jeb)} €, Wareneinsatz ${fmtEUR(we)} €, Jahreszinssatz ${zins} %. 1 Jahr = 360 Tage. Berechne die Werte (Folgefehler werden berücksichtigt).`,
+            fields: [
+              { l: 'Ø Lagerbestand', u: '€', sols: [avg], tol: 1 },
+              { l: 'Umschlagshäufigkeit', sols: [u], tol: 0.02, folge: v => we / v[0] },
+              { l: 'Ø Lagerdauer (Tage)', sols: [dauer], tol: 0.1, folge: v => 360 / v[1] },
+              { l: 'Lagerzinssatz (%)', sols: [satzE, satzR], tol: 0.01, folge: v => zins * v[2] / 360 },
+              { l: 'Lagerzinsen', u: '€', sols: [avg * satzE / 100, r2(avg * satzR / 100)], tol: 1, folge: v => v[0] * v[3] / 100 }],
+            e: 'Ø Lagerbestand = (JAB + JEB) ÷ 2 · Umschlag = Wareneinsatz ÷ Ø Bestand · Lagerdauer = 360 ÷ Umschlag · Lagerzinssatz = Jahreszins × Lagerdauer ÷ 360 · Lagerzinsen = Ø Bestand × Lagerzinssatz ÷ 100' };
+        },
+        () => { // Kalkulation
+          const lep = randInt(8, 20) * 100, rab = pick([10, 15, 20]), bk = pick([25, 40, 50, 80]), hkz = pick([20, 25, 30, 35]), gew = pick([10, 15, 20]), krab = pick([5, 10]);
+          const bp = r2(lep * (1 - rab / 100) + bk), skp = r2(bp * (1 + hkz / 100)), bvp = r2(skp * (1 + gew / 100)), lvp = r2(bvp / (1 - krab / 100));
+          return { t: 'calc', s: 'Rechenaufgabe Kalkulation', q: `Kalkulation: Listeneinkaufspreis netto ${fmtEUR(lep)} €, Liefererrabatt ${rab} %, Bezugskosten ${fmtEUR(bk)} €, Handlungskostenzuschlag ${hkz} %, Gewinnzuschlag ${gew} %, Kundenrabatt ${krab} % (im Hundert, vom Listenverkaufspreis). Kein Skonto. Ermittle den Listenverkaufspreis (Folgefehler werden berücksichtigt).`,
+            fields: [
+              { l: 'Bezugspreis', u: '€', sols: [bp], tol: 0.06 },
+              { l: 'Selbstkostenpreis', u: '€', sols: [skp], tol: 0.06, folge: v => v[0] * (1 + hkz / 100) },
+              { l: 'Barverkaufspreis', u: '€', sols: [bvp], tol: 0.06, folge: v => v[1] * (1 + gew / 100) },
+              { l: 'Listenverkaufspreis', u: '€', sols: [lvp], tol: 0.06, folge: v => v[2] / (1 - krab / 100) }],
+            e: 'Bezugspreis = LEP − Rabatt + Bezugskosten · SKP = Bezugspreis + Handlungskosten · BVP = SKP + Gewinn · LVP = BVP ÷ (1 − Kundenrabatt in % ÷ 100) (im Hundert)' };
+        },
+        () => { // Deckungsbeitrag
+          const kv = pick([12, 18, 24, 30, 40]), db = pick([8, 10, 12, 15, 20]), p = kv + db, bep = pick([100, 200, 250, 400, 500]), kf = db * bep, x = bep * pick([2, 3, 4]);
+          return { t: 'calc', s: 'Rechenaufgabe Deckungsbeitrag', q: `Verkaufspreis ${fmtEUR(p)} € je Stück, variable Stückkosten ${fmtEUR(kv)} €, Fixkosten ${fmtEUR(kf)} €, Absatzmenge ${x} Stück. Berechne (Folgefehler werden berücksichtigt):`,
+            fields: [
+              { l: 'Stückdeckungsbeitrag', u: '€', sols: [db], tol: 0.01 },
+              { l: 'Gesamtdeckungsbeitrag', u: '€', sols: [db * x], tol: 1, folge: v => v[0] * x },
+              { l: 'Betriebsergebnis', u: '€', sols: [db * x - kf], tol: 1, folge: v => v[1] - kf },
+              { l: 'Break-even-Menge', u: 'Stück', sols: [bep], tol: 0.5, folge: v => kf / v[0] }],
+            e: 'db = Preis − variable Stückkosten · DB = db × Menge · Ergebnis = DB − Fixkosten · Break-even = Fixkosten ÷ db' };
+        }
+      ];
+    }
+
+    function simBuild() {
+      const wiso = shuffle(QUIZ).slice(0, SIM_WISO);
+      const calc = simCalcGens().map(f => f());
+      const nums = shuffle(simNumGens()).slice(0, SIM_TOTAL - SIM_WISO - calc.length).map(f => f());
+      return wiso.concat(shuffle(calc.concat(nums)));
+    }
+
+    function renderWisoSimulation() {
+      document.getElementById('task-container').innerHTML = `
+        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 text-sm leading-relaxed">
+          <b>Prüfungssimulation WiSo</b><br>
+          • ${SIM_TOTAL} Aufgaben in <b>${SIM_MIN} Minuten</b>, keine Auswertung bis zur Abgabe<br>
+          • Teil A: ${SIM_WISO} WiSo-Fragen (Einfachauswahl, Mehrfachauswahl, Zahlen- und Textantworten)<br>
+          • Teil B: ${SIM_TOTAL - SIM_WISO} Rechenaufgaben wie im Bogen Sommer 2024 (Lagerkennziffern, Kalkulation, Deckungsbeitrag, Inflation, Arbeitslosenquote u. a.)<br>
+          • Du kannst springen, Aufgaben markieren und jederzeit abgeben. Nach Ablauf der Zeit wird automatisch abgegeben.<br>
+          • Bewertung nach dem IHK-Schlüssel: ab 50 % bestanden. Bei mehrteiligen Rechenaufgaben gibt es Teilpunkte, Folgefehler werden nicht doppelt bestraft.
+        </div>
+        <button type="button" onclick="startSim()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">Simulation starten (${SIM_MIN} Min.) →</button>`;
+    }
+
+    function startSim() {
+      const list = simBuild();
+      simState = {
+        list, ans: list.map(() => undefined), flag: list.map(() => false),
+        order: list.map(q => (q.t === 'mc' || q.t === 'multi') ? shuffle(q.o.map((_, k) => k + 1)) : null),
+        i: 0, endAt: Date.now() + SIM_MIN * 60000, done: false
+      };
+      if (quizTimer) clearInterval(quizTimer);
+      quizTimer = setInterval(simTick, 1000);
+      simRender();
+    }
+
+    function simClock(sec) { const m = Math.floor(sec / 60), s = sec % 60; return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0'); }
+
+    function simTick() {
+      const s = simState; if (!s || s.done) return;
+      const rem = Math.max(0, Math.round((s.endAt - Date.now()) / 1000));
+      const el = document.getElementById('sim-time');
+      if (el) { el.textContent = '⏱️ ' + simClock(rem); el.className = 'font-mono font-bold text-lg ' + (rem < 300 ? 'text-red-600' : 'text-slate-800'); }
+      if (rem <= 0) simFinish(true);
+    }
+
+    function simAnswered(k) {
+      const s = simState, q = s.list[k], a = s.ans[k];
+      if (a === undefined || a === null) return false;
+      if (q.t === 'mc') return true;
+      if (q.t === 'multi') return a.length > 0;
+      if (q.t === 'calc') return a.some(x => String(x).trim() !== '');
+      return String(a).trim() !== '';
+    }
+
+    function simSave() {
+      const s = simState; if (!s || s.done) return;
+      const q = s.list[s.i];
+      if (q.t === 'mc') { const c = document.querySelector('input[name="sim-r"]:checked'); if (c) s.ans[s.i] = parseInt(c.value, 10); }
+      else if (q.t === 'multi') s.ans[s.i] = Array.from(document.querySelectorAll('.sim-chk:checked')).map(el => parseInt(el.value, 10));
+      else if (q.t === 'calc') s.ans[s.i] = q.fields.map((_, j) => (document.getElementById('sim-c-' + j) || {}).value || '');
+      else { const el = document.getElementById('sim-in'); if (el) s.ans[s.i] = el.value; }
+    }
+
+    function simGo(k) { if (!simState || simState.done) return; simSave(); simState.i = Math.max(0, Math.min(SIM_TOTAL - 1, k)); simRender(); }
+    function simFlag() { simSave(); simState.flag[simState.i] = !simState.flag[simState.i]; simRender(); }
+
+    function simRender() {
+      const s = simState, i = s.i, q = s.list[i], a = s.ans[i];
+      let body = '';
+      if (q.t === 'mc') body = s.order[i].map(n => `<label class="flex gap-2 items-start border rounded-lg p-3 mb-2 text-sm cursor-pointer hover:bg-blue-50"><input type="radio" name="sim-r" value="${n}" ${a === n ? 'checked' : ''} class="mt-0.5" onchange="simSave()" /><span>${esc(q.o[n - 1])}</span></label>`).join('');
+      else if (q.t === 'multi') body = s.order[i].map(n => `<label class="flex gap-2 items-start border rounded-lg p-3 mb-2 text-sm cursor-pointer hover:bg-blue-50"><input type="checkbox" class="sim-chk mt-0.5" value="${n}" ${(a || []).includes(n) ? 'checked' : ''} onchange="simSave()" /><span>${esc(q.o[n - 1])}</span></label>`).join('');
+      else if (q.t === 'calc') body = q.fields.map((f, j) => `<div class="flex items-center gap-2 mb-2"><label class="text-sm flex-1">${esc(f.l)}${f.u ? ' (' + esc(f.u) + ')' : ''}</label><input id="sim-c-${j}" type="text" inputmode="decimal" autocomplete="off" value="${esc((a || [])[j] || '')}" oninput="simSave()" class="border p-2 rounded-lg w-40 text-right font-mono text-sm" /></div>`).join('');
+      else body = `<input id="sim-in" type="text" inputmode="${q.t === 'num' ? 'decimal' : 'text'}" autocomplete="off" value="${esc(a || '')}" oninput="simSave()" placeholder="${q.t === 'num' ? 'Zahl eingeben' + (q.u ? ' (' + q.u + ')' : '') : 'Antwort eingeben'}" class="border p-2 rounded-lg w-full font-mono" />`;
+      const grid = s.list.map((_, k) => `<button type="button" onclick="simGo(${k})" class="w-8 h-8 text-xs rounded ${s.flag[k] ? 'bg-amber-200' : simAnswered(k) ? 'bg-blue-200' : 'bg-slate-100'} ${k === i ? 'ring-2 ring-blue-600' : ''} ${k === SIM_WISO ? 'ml-2' : ''}">${k + 1}</button>`).join('');
+      const answeredCount = s.list.filter((_, k) => simAnswered(k)).length;
+      document.getElementById('task-container').innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-xs text-slate-500">Aufgabe <b>${i + 1}</b> von ${SIM_TOTAL} · ${i < SIM_WISO ? 'Teil A – WiSo' : 'Teil B – Rechenaufgaben'}<br>Beantwortet: ${answeredCount} / ${SIM_TOTAL}</span>
+          <span id="sim-time" class="font-mono font-bold text-lg">⏱️ --:--</span>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-4">${grid}</div>
+        <div class="text-xs text-slate-500 mb-1">${esc(q.s || '')}</div>
+        <div class="text-base font-semibold mb-3 whitespace-pre-line">${esc(q.q)}</div>
+        ${q.t === 'multi' ? `<div class="text-xs text-blue-700 mb-2">Wähle ${q.a.length} Antworten.</div>` : ''}
+        <div id="sim-body">${body}</div>
+        <div class="flex gap-2 mt-4">
+          <button type="button" onclick="simGo(${i - 1})" ${i === 0 ? 'disabled' : ''} class="flex-1 border py-2.5 rounded-lg font-semibold ${i === 0 ? 'opacity-40' : 'hover:bg-slate-50'}">← Zurück</button>
+          <button type="button" onclick="simFlag()" class="border px-4 py-2.5 rounded-lg font-semibold ${s.flag[i] ? 'bg-amber-200' : 'hover:bg-amber-50'}">${s.flag[i] ? '🚩 Markiert' : '🏳️ Markieren'}</button>
+          <button type="button" onclick="simGo(${i + 1})" ${i === SIM_TOTAL - 1 ? 'disabled' : ''} class="flex-1 border py-2.5 rounded-lg font-semibold ${i === SIM_TOTAL - 1 ? 'opacity-40' : 'hover:bg-slate-50'}">Weiter →</button>
+        </div>
+        <button type="button" onclick="simFinish(false)" class="mt-4 w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700">Prüfung abgeben</button>`;
+      simTick();
+    }
+
+    function simGrade(q, a) {
+      if (a === undefined || a === null) return 0;
+      if (q.t === 'mc') return a === q.a ? 1 : 0;
+      if (q.t === 'multi') return (a.length === q.a.length && q.a.every(x => a.includes(x))) ? 1 : 0;
+      if (q.t === 'num') { const n = parseNum(a); return (!isNaN(n) && Math.abs(n - q.a) <= (q.tol || 0.01)) ? 1 : 0; }
+      if (q.t === 'txt') { const norm = x => String(x).toLowerCase().replace(/\s/g, '').replace(/\.$/, ''); return norm(a) === norm(q.a) ? 1 : 0; }
+      if (q.t === 'calc') {
+        const vals = q.fields.map((_, j) => parseNum((a || [])[j]));
+        let ok = 0;
+        q.fields.forEach((f, j) => {
+          const v = vals[j]; if (isNaN(v)) return;
+          let good = inRange(v, f.sols, f.tol);
+          if (!good && f.folge) { const fo = f.folge(vals); good = isFinite(fo) && Math.abs(v - fo) <= Math.max(f.tol, Math.abs(fo) * 0.005); }
+          if (good) ok++;
+        });
+        return ok / q.fields.length;
+      }
+      return 0;
+    }
+
+    function simAnswerText(q, a) {
+      if (a === undefined || a === null) return '–';
+      if (q.t === 'mc') return q.o[a - 1];
+      if (q.t === 'multi') return a.length ? a.map(n => q.o[n - 1]).join('  •  ') : '–';
+      if (q.t === 'calc') return q.fields.map((f, j) => `${f.l}: ${(a[j] || '–')}`).join(' | ');
+      return String(a).trim() || '–';
+    }
+    function simSolText(q) {
+      if (q.t === 'mc') return q.o[q.a - 1];
+      if (q.t === 'multi') return q.a.map(n => q.o[n - 1]).join('  •  ');
+      if (q.t === 'calc') return q.fields.map(f => `${f.l}: ${dispSols(f.sols, f.u)}`).join(' | ');
+      if (q.t === 'num') return fmtN(q.a) + (q.u ? ' ' + q.u : '');
+      return q.a;
+    }
+    function simNote(pct) {
+      if (pct >= 92) return '1 – sehr gut'; if (pct >= 81) return '2 – gut'; if (pct >= 67) return '3 – befriedigend';
+      if (pct >= 50) return '4 – ausreichend'; if (pct >= 30) return '5 – mangelhaft'; return '6 – ungenügend';
+    }
+
+    async function simFinish(auto) {
+      const s = simState; if (!s || s.done) return;
+      simSave();
+      if (!auto) {
+        const open = s.list.filter((_, k) => !simAnswered(k)).length;
+        if (!confirm(open ? `Noch ${open} Aufgabe(n) unbeantwortet. Jetzt abgeben?` : 'Prüfung jetzt abgeben?')) return;
+      }
+      s.done = true;
+      if (quizTimer) clearInterval(quizTimer);
+      const fr = s.list.map((q, k) => simGrade(q, s.ans[k]));
+      const sum = (from, to) => fr.slice(from, to).reduce((x, y) => x + y, 0);
+      const points = sum(0, SIM_TOTAL), pct = points / SIM_TOTAL * 100;
+      const used = Math.min(SIM_MIN * 60, Math.round((Date.now() - (s.endAt - SIM_MIN * 60000)) / 1000));
+      const review = s.list.map((q, k) => {
+        const f = fr[k], cls = f === 1 ? 'bg-green-50 border-green-300 sim-ok' : f > 0 ? 'bg-amber-50 border-amber-300' : 'bg-red-50 border-red-300';
+        return `<div class="p-3 rounded-lg border mb-2 text-sm ${cls}">
+          <div class="font-semibold">${f === 1 ? '✅' : f > 0 ? '🟡' : '❌'} Aufgabe ${k + 1} (${r2(f)} von 1 Punkt) · <span class="text-xs font-normal text-slate-500">${esc(q.s || '')}</span></div>
+          <div class="whitespace-pre-line mt-1">${esc(q.q)}</div>
+          <div class="mt-1 text-xs"><b>Deine Antwort:</b> ${esc(simAnswerText(q, s.ans[k]))}</div>
+          ${f === 1 ? '' : `<div class="text-xs"><b>Richtig:</b> ${esc(simSolText(q))}</div>`}
+          ${q.e ? `<div class="text-xs text-slate-600 mt-1">💡 ${esc(q.e)}</div>` : ''}
+        </div>`;
+      }).join('');
+      document.getElementById('task-container').innerHTML = `
+        <div class="p-6 rounded-xl text-center ${pct >= 50 ? 'bg-green-50 border border-green-300' : 'bg-amber-50 border border-amber-300'}">
+          <div class="text-3xl font-bold">${fmtN(r2(points))} / ${SIM_TOTAL} Punkte</div>
+          <div class="text-lg font-semibold mt-1">${fmtN(r2(pct))} % · Note ${simNote(pct)}</div>
+          <div class="text-sm mt-1">${pct >= 50 ? 'Bestanden' : 'Noch nicht bestanden'}${auto ? ' · Zeit abgelaufen, automatisch abgegeben' : ' · benötigte Zeit ' + simClock(used)}</div>
+          <div class="text-xs text-slate-600 mt-2">Teil A (WiSo): ${fmtN(r2(sum(0, SIM_WISO)))} / ${SIM_WISO} · Teil B (Rechnen): ${fmtN(r2(sum(SIM_WISO, SIM_TOTAL)))} / ${SIM_TOTAL - SIM_WISO}</div>
+          <div class="text-xs text-slate-500 mt-2">Ergebnis wurde gespeichert.</div>
+        </div>
+        <div class="text-xs text-slate-500 mt-3">IHK-Schlüssel: 100–92 % sehr gut · &lt;92–81 gut · &lt;81–67 befriedigend · &lt;67–50 ausreichend · &lt;50–30 mangelhaft · &lt;30 ungenügend</div>
+        <button type="button" onclick="document.querySelectorAll('.sim-ok').forEach(el => el.classList.toggle('hidden'))" class="mt-4 mb-3 w-full border py-2.5 rounded-lg font-semibold hover:bg-slate-50">Richtige Aufgaben ein-/ausblenden</button>
+        <div id="sim-review">${review}</div>
+        <button type="button" onclick="nextStep()" class="mt-4 w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">Neue Simulation →</button>`;
+      await recordAttempt(r2(points), SIM_TOTAL);
     }
 
     // =========================================================================
