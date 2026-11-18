@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Neues Passwort</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head><body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+<form id="f" class="bg-white p-6 rounded-xl shadow w-full max-w-sm space-y-3">
+  <h1 class="text-xl font-bold">Neues Passwort festlegen</h1>
+  <div id="msg" class="hidden text-sm p-3 rounded-lg"></div>
+  <input id="p1" type="password" autocomplete="new-password" placeholder="Neues Passwort" class="w-full border rounded-lg p-2">
+  <input id="p2" type="password" autocomplete="new-password" placeholder="Wiederholen" class="w-full border rounded-lg p-2">
+  <p class="text-xs text-slate-500">Mind. 8 Zeichen, Groß-/Kleinbuchstaben, Zahl, Sonderzeichen.</p>
+  <button class="w-full bg-blue-600 text-white rounded-lg py-2 font-semibold">Speichern</button>
+  <a href="index.html" class="block text-center text-sm text-blue-700">Zur Lernapp</a>
+</form>
+<script>
+const SB = window.supabase.createClient('https://kvzbtrbgxhkrdbrbygek.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2emJ0cmJneGhrcmRicmJ5Z2VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjQxNjYsImV4cCI6MjEwNzU0MDE2Nn0.DuNbXp8Kp8cUzF53z6BBi_GsjSwPUC5lG72duBFJQrc');
+const msg = (t, err) => { const m = document.getElementById('msg'); m.textContent = t; m.className = 'text-sm p-3 rounded-lg ' + (err ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'); };
+let ready = false;
+SB.auth.onAuthStateChange((ev) => { if (ev === 'PASSWORD_RECOVERY') ready = true; });
+SB.auth.getSession().then(({ data }) => { if (data.session) ready = true; });
+document.getElementById('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const a = p1.value, b = p2.value;
+  if (!ready) return msg('Link ungültig oder abgelaufen. Bitte neuen Reset anfordern.', true);
+  if (a !== b) return msg('Die Passwörter stimmen nicht überein.', true);
+  if (!(a.length >= 8 && /[a-z]/.test(a) && /[A-Z]/.test(a) && /\d/.test(a) && /[^A-Za-z0-9]/.test(a))) return msg('Passwort erfüllt die Anforderungen nicht.', true);
+  const { error } = await SB.auth.updateUser({ password: a });
+  if (error) return msg(error.message, true);
+  msg('Passwort geändert. Du kannst dich jetzt in der Lernapp anmelden.');
+  await SB.auth.signOut();
+});
+</script></body></html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Admin – Nutzerverwaltung</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head><body class="bg-slate-100 min-h-screen p-4 text-slate-800">
+<div class="max-w-5xl mx-auto">
+  <h1 class="text-2xl font-bold mb-1">🔐 Nutzerverwaltung</h1>
+  <p class="text-sm text-slate-600 mb-4">Passwörter sind aus Sicherheits- und DSGVO-Gründen nie einsehbar (nur als Hash gespeichert). Du kannst Reset-Mails senden oder ein neues Passwort setzen.</p>
+  <div id="msg" class="hidden text-sm p-3 rounded-lg mb-4"></div>
+
+  <form id="login" class="bg-white p-5 rounded-xl shadow max-w-sm space-y-3">
+    <input id="email" type="email" placeholder="Admin-E-Mail" autocomplete="username" class="w-full border rounded-lg p-2">
+    <input id="pw" type="password" placeholder="Passwort" autocomplete="current-password" class="w-full border rounded-lg p-2">
+    <button class="w-full bg-blue-600 text-white rounded-lg py-2 font-semibold">Anmelden</button>
+  </form>
+
+  <div id="panel" class="hidden">
+    <div class="flex gap-2 mb-3">
+      <input id="q" placeholder="Suchen (E-Mail)…" class="flex-1 border rounded-lg p-2 bg-white">
+      <button id="reload" class="bg-white border rounded-lg px-3">↻</button>
+      <button id="logout" class="bg-slate-200 rounded-lg px-3">Abmelden</button>
+    </div>
+    <div class="bg-white rounded-xl shadow overflow-x-auto">
+      <table class="w-full text-sm"><thead class="bg-slate-50 text-left"><tr>
+        <th class="p-3">E-Mail</th><th class="p-3">Registriert</th><th class="p-3">Letzter Login</th><th class="p-3">Aktionen</th></tr></thead>
+      <tbody id="rows"></tbody></table>
+    </div>
+    <p id="count" class="text-xs text-slate-500 mt-2"></p>
+  </div>
+</div>
+<script>
+const SB = window.supabase.createClient('https://kvzbtrbgxhkrdbrbygek.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2emJ0cmJneGhrcmRicmJ5Z2VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjQxNjYsImV4cCI6MjEwNzU0MDE2Nn0.DuNbXp8Kp8cUzF53z6BBi_GsjSwPUC5lG72duBFJQrc');
+const FN = 'admin-users';
+let users = [], me = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = d => d ? new Date(d).toLocaleString('de-DE', {dateStyle:'short', timeStyle:'short'}) : '–';
+function msg(t, err) { const m = $('msg'); m.textContent = t; m.className = 'text-sm p-3 rounded-lg mb-4 ' + (err ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'); }
+async function call(body) {
+  const { data, error } = await SB.functions.invoke(FN, { body });
+  if (error) { let t = error.message; try { t = (await error.context.json()).error || t; } catch (e) {} throw new Error(t); }
+  return data;
+}
+async function load() {
+  try { const d = await call({ action: 'list' }); users = d.users; me = d.me; render(); $('login').classList.add('hidden'); $('panel').classList.remove('hidden'); $('msg').classList.add('hidden'); }
+  catch (e) { msg(e.message === 'Kein Admin' ? 'Dieses Konto ist kein Admin.' : e.message, true); $('login').classList.remove('hidden'); $('panel').classList.add('hidden'); }
+}
+function render() {
+  const q = $('q').value.toLowerCase();
+  const list = users.filter(u => (u.email || '').toLowerCase().includes(q));
+  $('rows').innerHTML = list.map(u => '<tr class="border-t"><td class="p-3 font-medium">' + esc(u.email) + (u.is_admin ? ' <span class="text-xs bg-amber-100 text-amber-800 px-1.5 rounded">Admin</span>' : '') + '</td><td class="p-3">' + fmt(u.created_at) + '</td><td class="p-3">' + fmt(u.last_sign_in_at) + '</td><td class="p-3 space-x-1 whitespace-nowrap">' +
+    '<button data-a="reset" data-id="' + esc(u.id) + '" class="bg-blue-50 text-blue-700 px-2 py-1 rounded">Reset-Mail</button>' +
+    '<button data-a="setpw" data-id="' + esc(u.id) + '" class="bg-slate-100 px-2 py-1 rounded">Neues PW</button>' +
+    '<button data-a="export" data-id="' + esc(u.id) + '" class="bg-slate-100 px-2 py-1 rounded">Export</button>' +
+    (u.id === me ? '' : '<button data-a="del" data-id="' + esc(u.id) + '" class="bg-red-50 text-red-700 px-2 py-1 rounded">Löschen</button>') + '</td></tr>').join('');
+  $('count').textContent = list.length + ' von ' + users.length + ' Nutzern';
+}
+$('rows').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const u = users.find(x => x.id === b.dataset.id); if (!u) return;
+  try {
+    if (b.dataset.a === 'reset') {
+      if (!confirm('Reset-Mail an ' + u.email + ' senden?')) return;
+      await call({ action: 'send_reset', user_id: u.id, redirect_to: new URL('passwort.html', location.href).href });
+      msg('Reset-Mail an ' + u.email + ' gesendet.');
+    } else if (b.dataset.a === 'setpw') {
+      const p = prompt('Neues Passwort für ' + u.email + '\n(mind. 8 Zeichen, Groß-/Kleinbuchstaben, Zahl, Sonderzeichen):');
+      if (!p) return;
+      await call({ action: 'set_password', user_id: u.id, password: p });
+      msg('Passwort für ' + u.email + ' gesetzt. Gib es sicher weiter und lass den Nutzer es ändern.');
+    } else if (b.dataset.a === 'export') {
+      const d = await call({ action: 'export_user', user_id: u.id });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(d.export, null, 2)], { type: 'application/json' }));
+      a.download = 'export-' + u.id + '.json'; a.click();
+    } else if (b.dataset.a === 'del') {
+      if (!confirm('ACHTUNG: ' + u.email + ' und ALLE Daten endgültig löschen?')) return;
+      await call({ action: 'delete_user', user_id: u.id });
+      msg(u.email + ' wurde gelöscht.'); load();
+    }
+  } catch (err) { msg(err.message, true); }
+});
+$('login').addEventListener('submit', async e => {
+  e.preventDefault();
+  const { error } = await SB.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pw').value });
+  if (error) return msg(error.message, true);
+  $('pw').value = ''; load();
+});
+$('q').addEventListener('input', render);
+$('reload').onclick = load;
+$('logout').onclick = async () => { await SB.auth.signOut(); users = []; $('panel').classList.add('hidden'); $('login').classList.remove('hidden'); };
+SB.auth.getSession().then(({ data }) => { if (data.session) load(); });
+</script></body></html>

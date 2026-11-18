@@ -23,6 +23,7 @@
       <button type="button" onclick="login()" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Einloggen</button>
       <button type="button" onclick="signup()" class="flex-1 bg-slate-200 text-slate-800 py-3 rounded-lg font-semibold hover:bg-slate-300 transition">Registrieren</button>
     </div>
+    <button type="button" onclick="forgotPassword()" class="text-sm text-blue-700 underline">Passwort vergessen?</button>
   </div>
 
   <!-- DASHBOARD BEREICH -->
@@ -34,6 +35,7 @@
       </div>
       <div class="flex gap-2">
         <button id="inbox-btn" type="button" onclick="openInbox('neu')" class="hidden text-sm bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 font-medium">📥 Inbox<span id="inbox-count"></span></button>
+        <a id="users-btn" href="admin.html" class="hidden text-sm bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 font-medium">👥 Nutzer</a>
         <button type="button" onclick="logout()" class="text-sm bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 font-medium">Abmelden</button>
       </div>
     </div>
@@ -146,6 +148,14 @@
       currentUser = data.user;
       await loadUserData();
       showView('dashboard');
+    }
+
+    async function forgotPassword() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) return showStatus('Bitte oben deine E-Mail eintragen.');
+      const redirectTo = new URL('passwort.html', location.href).href;
+      await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
+      showStatus('Falls die Adresse bekannt ist, wurde eine E-Mail zum Zurücksetzen gesendet.', false);
     }
 
     async function signup() {
@@ -1635,6 +1645,7 @@
       const btn = document.getElementById('inbox-btn');
       if (!btn) return;
       btn.classList.toggle('hidden', !isAdmin);
+      const ub = document.getElementById('users-btn'); if (ub) ub.classList.toggle('hidden', !isAdmin);
       if (!isAdmin) return;
       try {
         const { count } = await supabaseClient.from('feedback').select('id', { count: 'exact', head: true }).eq('status', 'neu');
