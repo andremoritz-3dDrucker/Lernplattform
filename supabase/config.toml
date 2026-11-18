@@ -2,3 +2,4 @@ project_id = "kvzbtrbgxhkrdbrbygek"
 
 [functions.admin-users]
 verify_jwt = true
+# Deploy erneut angestoßen
