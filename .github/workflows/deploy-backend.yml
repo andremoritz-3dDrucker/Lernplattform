@@ -13,6 +13,6 @@ jobs:
         with:
           version: latest
       - name: Edge Function deployen
-        run: supabase functions deploy admin-users --project-ref kvzbtrbgxhkrdbrbygek
+        run: supabase functions deploy admin-users --project-ref kvzbtrbgxhkrdbrbygek --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
